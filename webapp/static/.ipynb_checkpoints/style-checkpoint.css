@@ -1,0 +1,322 @@
+/* ---------------------------------------------------------------------
+   StyleVector demo — design concept: an open lab notebook comparing two
+   drafts of the same paragraph. Serif for reading/writing content
+   (the subject matter is literally "writing"), monospace for the
+   technical/measurement layer (activation vectors, scores, config).
+   Base output reads in muted grey ink; steered output reads in a
+   confident indigo ink — the color itself carries the "before/after".
+   --------------------------------------------------------------------- */
+
+:root {
+  --paper: #f6f5f1;
+  --paper-dim: #efeee8;
+  --ink: #232320;
+  --ink-soft: #5b584f;
+  --rule: #d8d5cb;
+  --base-ink: #8a8477;
+  --steer-ink: #33408f;
+  --steer-ink-soft: #6771ab;
+  --accent-warm: #b5502f;
+  --serif: "Source Serif 4", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  --mono: "IBM Plex Mono", "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --max-line: 68ch;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 17px;
+  line-height: 1.55;
+}
+
+::selection { background: var(--steer-ink-soft); color: var(--paper); }
+
+a { color: var(--steer-ink); }
+
+/* ---------------------------- Layout shell ---------------------------- */
+
+.shell {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 3rem 2rem 6rem;
+}
+
+header.masthead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 1.4rem;
+  margin-bottom: 2.4rem;
+  flex-wrap: wrap;
+  gap: 0.6rem 1.5rem;
+}
+
+header.masthead h1 {
+  font-size: 1.7rem;
+  font-weight: 600;
+  margin: 0;
+  letter-spacing: 0.01em;
+}
+
+header.masthead .subtitle {
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+  max-width: 34ch;
+  text-align: right;
+  line-height: 1.5;
+}
+
+/* ------------------------------ Controls ------------------------------ */
+
+.controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.6rem;
+  margin-bottom: 2.2rem;
+}
+
+.field label {
+  display: block;
+  font-family: var(--mono);
+  font-size: 0.76rem;
+  color: var(--ink-soft);
+  margin-bottom: 0.4rem;
+}
+
+select, textarea, button {
+  font-family: inherit;
+  font-size: 1rem;
+  color: var(--ink);
+  background: #fff;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 0.6rem 0.7rem;
+  width: 100%;
+}
+
+select { font-family: var(--mono); font-size: 0.9rem; cursor: pointer; }
+select:focus, textarea:focus, button:focus-visible {
+  outline: 2px solid var(--steer-ink-soft);
+  outline-offset: 1px;
+}
+
+.user-preview {
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  margin-top: 0.5rem;
+  line-height: 1.5;
+}
+
+.mode-toggle {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  overflow: hidden;
+  width: fit-content;
+}
+.mode-toggle button {
+  width: auto;
+  border: none;
+  border-radius: 0;
+  padding: 0.45rem 1rem;
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  background: #fff;
+  cursor: pointer;
+  color: var(--ink-soft);
+}
+.mode-toggle button.active {
+  background: var(--ink);
+  color: var(--paper);
+}
+.mode-toggle button:not(:last-child) { border-right: 1px solid var(--rule); }
+
+.prompt-block { margin-bottom: 1.8rem; }
+.prompt-block textarea { min-height: 6.5rem; resize: vertical; line-height: 1.5; }
+.prompt-hint {
+  font-family: var(--mono);
+  font-size: 0.76rem;
+  color: var(--ink-soft);
+  margin-top: 0.4rem;
+}
+
+.generate-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 3rem; }
+button.primary {
+  width: auto;
+  background: var(--ink);
+  color: var(--paper);
+  border: none;
+  padding: 0.7rem 1.6rem;
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+button.primary:hover { background: var(--steer-ink); }
+button.primary:disabled { background: var(--rule); color: var(--ink-soft); cursor: default; }
+
+.status-text {
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+}
+
+/* --------------------------- Comparison panel -------------------------- */
+
+.comparison {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 2.6rem;
+}
+
+.panel { padding: 1.8rem 1.9rem; min-height: 8rem; }
+.panel.base { border-right: 1px solid var(--rule); }
+
+.panel .label {
+  font-family: var(--mono);
+  font-size: 0.76rem;
+  text-transform: none;
+  margin-bottom: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.panel.base .label { color: var(--base-ink); }
+.panel.steer .label { color: var(--steer-ink); }
+.label .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+.panel.base .dot { background: var(--base-ink); }
+.panel.steer .dot { background: var(--steer-ink); }
+
+.panel .output-text {
+  font-size: 1.12rem;
+  line-height: 1.6;
+  max-width: var(--max-line);
+}
+.panel.base .output-text { color: var(--ink-soft); }
+.panel.steer .output-text { color: var(--ink); }
+
+.panel .meta {
+  font-family: var(--mono);
+  font-size: 0.74rem;
+  color: var(--ink-soft);
+  margin-top: 1rem;
+  display: flex;
+  gap: 1.1rem;
+  flex-wrap: wrap;
+}
+.panel .meta .score-up { color: #2f7d4f; }
+.panel .meta .score-down { color: var(--accent-warm); }
+
+.gold-strip {
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  padding: 0.9rem 1.9rem;
+  border-bottom: 1px solid var(--rule);
+  background: var(--paper-dim);
+}
+.gold-strip strong { color: var(--ink); font-weight: 600; }
+
+/* --------------------------- Analytics section -------------------------- */
+
+.analytics {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 2.5rem;
+  margin-top: 2.5rem;
+}
+
+.analytics h2 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0 0 1rem;
+  font-family: var(--mono);
+  color: var(--ink-soft);
+}
+
+.vector-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.6rem;
+}
+.stat {
+  border: 1px solid var(--rule);
+  padding: 0.8rem 0.9rem;
+  border-radius: 3px;
+}
+.stat .num { font-family: var(--mono); font-size: 1.3rem; color: var(--steer-ink); }
+.stat .cap { font-family: var(--mono); font-size: 0.7rem; color: var(--ink-soft); margin-top: 0.2rem; }
+
+.influence-item {
+  border-left: 2px solid var(--steer-ink-soft);
+  padding: 0.6rem 0 0.6rem 1rem;
+  margin-bottom: 0.9rem;
+}
+.influence-item .sim {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--steer-ink);
+  margin-bottom: 0.25rem;
+}
+.influence-item .snippet {
+  font-size: 0.95rem;
+  color: var(--ink-soft);
+  line-height: 1.45;
+}
+
+.summary-chart-wrap { border: 1px solid var(--rule); border-radius: 3px; padding: 1.2rem 1.3rem; }
+.summary-placeholder {
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  line-height: 1.6;
+}
+
+table.summary-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+}
+table.summary-table th, table.summary-table td {
+  text-align: left;
+  padding: 0.4rem 0.5rem;
+  border-bottom: 1px solid var(--rule);
+}
+table.summary-table th { color: var(--ink-soft); font-weight: 500; }
+table.summary-table td.improve-pos { color: #2f7d4f; }
+table.summary-table td.improve-neg { color: var(--accent-warm); }
+
+footer.note {
+  margin-top: 4rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid var(--rule);
+  font-family: var(--mono);
+  font-size: 0.74rem;
+  color: var(--ink-soft);
+  line-height: 1.6;
+  max-width: 70ch;
+}
+
+@media (max-width: 860px) {
+  .controls, .comparison, .analytics { grid-template-columns: 1fr; }
+  .panel.base { border-right: none; border-bottom: 1px solid var(--rule); }
+  header.masthead .subtitle { text-align: left; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}

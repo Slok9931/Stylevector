@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StyleVector — Midterm Presentation</title>
+<style>
+/* =====================================================================
+   Design tokens — same manuscript/editorial language as the demo page,
+   scaled up for a presentation format. No external fonts/CDNs: this
+   deck must not depend on internet access during a live presentation.
+   ===================================================================== */
+:root {
+  --paper: #f6f5f1;
+  --paper-dim: #efeee8;
+  --ink: #232320;
+  --ink-soft: #5b584f;
+  --rule: #d8d5cb;
+  --base-ink: #8a8477;
+  --steer-ink: #33408f;
+  --steer-ink-soft: #6771ab;
+  --accent-warm: #b5502f;
+  --good: #2f7d4f;
+  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
+  --mono: ui-monospace, SFMono-Regular, "IBM Plex Mono", Menlo, Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0; height: 100%;
+  background: var(--paper); color: var(--ink);
+  font-family: var(--serif);
+  overflow: hidden;
+}
+::selection { background: var(--steer-ink-soft); color: var(--paper); }
+
+/* =====================================================================
+   Deck shell + slides
+   ===================================================================== */
+.deck-shell {
+  position: relative;
+  width: 100vw; height: 100vh;
+}
+
+.slide {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  justify-content: center;
+  padding: 5vh 9vw;
+  opacity: 0; visibility: hidden;
+  transform: translateY(18px);
+  transition: opacity 460ms ease, transform 460ms ease;
+  pointer-events: none;
+}
+.slide.active {
+  opacity: 1; visibility: visible;
+  transform: translateY(0);
+  pointer-events: auto;
+  z-index: 2;
+}
+.slide.exit-up { transform: translateY(-18px); }
+
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  color: var(--steer-ink);
+  letter-spacing: 0.02em;
+  margin-bottom: 0.9rem;
+}
+.slide h1 {
+  font-size: 3rem; font-weight: 600; margin: 0 0 0.6rem; line-height: 1.15;
+}
+.slide h2 {
+  font-size: 2.1rem; font-weight: 600; margin: 0 0 1.4rem; line-height: 1.2;
+}
+.slide .slide-sub {
+  font-size: 1.15rem; color: var(--ink-soft); max-width: 62ch; margin: 0 0 1.8rem;
+  line-height: 1.5;
+}
+.slide p, .slide li { font-size: 1.15rem; line-height: 1.55; }
+.slide ul { padding-left: 1.3rem; max-width: 66ch; }
+.slide li { margin-bottom: 0.55rem; }
+.slide strong { color: var(--ink); font-weight: 600; }
+
+/* fragments: revealed step-by-step on repeated "next" presses */
+.fragment {
+  opacity: 0; transform: translateY(8px);
+  transition: opacity 340ms ease, transform 340ms ease;
+}
+.fragment.visible { opacity: 1; transform: none; }
+
+/* =====================================================================
+   Title slide
+   ===================================================================== */
+.slide.title-slide { align-items: center; text-align: center; }
+.slide.title-slide h1 { font-size: 3.4rem; max-width: 20ch; }
+.title-meta {
+  font-family: var(--mono); font-size: 0.9rem; color: var(--ink-soft);
+  margin-top: 2rem; display: flex; gap: 2rem; flex-wrap: wrap; justify-content: center;
+}
+.title-rule { width: 64px; height: 2px; background: var(--steer-ink); margin: 1.6rem 0; }
+
+/* =====================================================================
+   Reusable components
+   ===================================================================== */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: start; }
+.three-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.4rem; }
+
+.card {
+  border: 1px solid var(--rule); border-radius: 4px; padding: 1.3rem 1.4rem;
+  background: #fff;
+}
+.card h3 {
+  font-family: var(--mono); font-size: 0.85rem; color: var(--ink-soft);
+  margin: 0 0 0.6rem; font-weight: 500;
+}
+.card .big { font-size: 1.5rem; color: var(--steer-ink); font-family: var(--mono); }
+
+.eq-block {
+  font-family: var(--mono); font-size: 1.05rem; background: #fff;
+  border: 1px solid var(--rule); border-left: 3px solid var(--steer-ink);
+  padding: 0.9rem 1.1rem; border-radius: 3px; margin-bottom: 0.9rem;
+  max-width: 68ch;
+}
+.eq-label { color: var(--ink-soft); font-size: 0.78rem; margin-bottom: 0.3rem; }
+
+/* pipeline diagram */
+.pipeline { display: flex; align-items: center; gap: 0; margin: 1rem 0 0; flex-wrap: wrap; }
+.pipeline .step {
+  border: 1px solid var(--rule); border-radius: 4px; padding: 1rem 1.2rem;
+  background: #fff; font-size: 0.95rem; max-width: 15rem; text-align: center;
+}
+.pipeline .step .num {
+  font-family: var(--mono); font-size: 0.75rem; color: var(--steer-ink); margin-bottom: 0.4rem;
+}
+.pipeline .arrow {
+  font-size: 1.4rem; color: var(--ink-soft); padding: 0 0.9rem;
+}
+
+/* diff-style before/after box for the bug story slide */
+.diff-box {
+  font-family: var(--mono); font-size: 0.95rem; border-radius: 3px; overflow: hidden;
+  border: 1px solid var(--rule); max-width: 68ch;
+}
+.diff-line { padding: 0.5rem 0.9rem; white-space: pre-wrap; word-break: break-word; }
+.diff-remove { background: #fbe9e5; color: var(--accent-warm); }
+.diff-add { background: #e9f3ec; color: var(--good); }
+
+/* results slide: simple CSS bar chart, no chart library dependency */
+.bars-wrap { display: flex; gap: 2.2rem; align-items: flex-end; height: 220px; margin: 1.5rem 0 0.5rem; }
+.bar-group { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; flex: 1; }
+.bar-pair { display: flex; align-items: flex-end; gap: 6px; height: 170px; }
+.bar { width: 26px; border-radius: 2px 2px 0 0; transition: height 700ms cubic-bezier(.2,.8,.2,1); }
+.bar.base { background: var(--base-ink); }
+.bar.steer { background: var(--steer-ink); }
+.bar-value { font-family: var(--mono); font-size: 0.68rem; color: var(--ink-soft); margin-bottom: 2px; }
+.bar-label { font-family: var(--mono); font-size: 0.78rem; color: var(--ink-soft); text-align: center; }
+
+.legend { display: flex; gap: 1.4rem; font-family: var(--mono); font-size: 0.8rem; color: var(--ink-soft); margin-top: 0.8rem; }
+.legend .dot { width: 8px; height: 8px; display: inline-block; border-radius: 50%; margin-right: 0.4rem; }
+.legend .dot.base { background: var(--base-ink); }
+.legend .dot.steer { background: var(--steer-ink); }
+
+table.results-table {
+  border-collapse: collapse; font-family: var(--mono); font-size: 0.85rem; margin-top: 1.2rem; width: 100%;
+}
+table.results-table th, table.results-table td { text-align: left; padding: 0.4rem 0.7rem; border-bottom: 1px solid var(--rule); }
+table.results-table th { color: var(--ink-soft); font-weight: 500; }
+.pos { color: var(--good); } .neg { color: var(--accent-warm); }
+.loading-note { font-family: var(--mono); font-size: 0.85rem; color: var(--ink-soft); }
+
+/* demo slide */
+.slide.demo-slide { padding: 3.5vh 4vw; }
+.demo-frame-wrap { flex: 1; display: flex; flex-direction: column; }
+.demo-iframe {
+  width: 100%; height: 68vh; border: 1px solid var(--rule); border-radius: 4px; background: #fff;
+}
+.demo-controls { margin-top: 0.9rem; display: flex; justify-content: flex-end; }
+.btn-ghost {
+  font-family: var(--mono); font-size: 0.82rem; color: var(--steer-ink);
+  text-decoration: none; border: 1px solid var(--rule); padding: 0.45rem 0.9rem; border-radius: 3px;
+}
+.btn-ghost:hover { border-color: var(--steer-ink); }
+
+/* =====================================================================
+   Chrome: progress bar, counter, nav buttons, shortcuts hint
+   ===================================================================== */
+.progress-track { position: fixed; top: 0; left: 0; right: 0; height: 3px; background: var(--rule); z-index: 50; }
+.progress-fill { height: 100%; background: var(--steer-ink); width: 0%; transition: width 380ms ease; }
+
+.slide-counter {
+  position: fixed; bottom: 1.1rem; left: 1.4rem; z-index: 50;
+  font-family: var(--mono); font-size: 0.78rem; color: var(--ink-soft);
+}
+.nav-hint {
+  position: fixed; bottom: 1.1rem; right: 1.4rem; z-index: 50;
+  font-family: var(--mono); font-size: 0.72rem; color: var(--ink-soft);
+}
+
+.nav-btn {
+  position: fixed; bottom: 1rem; z-index: 50;
+  width: 2.2rem; height: 2.2rem; border-radius: 50%;
+  border: 1px solid var(--rule); background: #fff; color: var(--ink);
+  font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+.nav-btn:hover { border-color: var(--steer-ink); color: var(--steer-ink); }
+.nav-btn.prev { right: 6.4rem; }
+.nav-btn.next { right: 4rem; }
+
+/* =====================================================================
+   Overview grid (Esc)
+   ===================================================================== */
+.overview {
+  position: fixed; inset: 0; background: rgba(35,35,32,0.92); z-index: 100;
+  display: none; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 260ms ease;
+}
+.overview.open { display: flex; opacity: 1; }
+.overview-grid {
+  display: grid; grid-template-columns: repeat(4, minmax(180px, 1fr)); gap: 1rem;
+  max-width: 1100px; max-height: 82vh; overflow-y: auto; padding: 1rem;
+}
+.overview-card {
+  background: var(--paper); border: 1px solid var(--rule); border-radius: 4px;
+  padding: 1rem; cursor: pointer; text-align: left; transition: transform 160ms ease, border-color 160ms ease;
+}
+.overview-card:hover { transform: translateY(-3px); border-color: var(--steer-ink); }
+.overview-card .idx { font-family: var(--mono); font-size: 0.72rem; color: var(--steer-ink); margin-bottom: 0.4rem; }
+.overview-card .ttl { font-size: 0.95rem; font-weight: 600; line-height: 1.3; }
+.overview-card.current { border-color: var(--steer-ink); box-shadow: 0 0 0 2px var(--steer-ink-soft) inset; }
+
+/* =====================================================================
+   Shortcuts help modal ("?")
+   ===================================================================== */
+.help-modal {
+  position: fixed; inset: 0; background: rgba(35,35,32,0.92); z-index: 110;
+  display: none; align-items: center; justify-content: center; opacity: 0;
+  transition: opacity 220ms ease;
+}
+.help-modal.open { display: flex; opacity: 1; }
+.help-card {
+  background: var(--paper); border: 1px solid var(--rule); border-radius: 5px;
+  padding: 1.8rem 2rem; max-width: 30rem; font-family: var(--mono); font-size: 0.85rem; line-height: 2;
+}
+.help-card h4 { font-family: var(--serif); font-size: 1.2rem; margin: 0 0 1rem; }
+.key { border: 1px solid var(--rule); border-radius: 3px; padding: 0.05rem 0.4rem; background: #fff; margin-right: 0.3rem; }
+
+@media (max-width: 900px) {
+  .two-col, .three-col { grid-template-columns: 1fr; }
+  .slide h1 { font-size: 2.1rem; }
+  .slide h2 { font-size: 1.5rem; }
+  .overview-grid { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+
+<div class="deck-shell" id="deck">
+
+  <!-- ================= Slide 0: Title ================= -->
+  <section class="slide title-slide" data-title="Title">
+    <div class="eyebrow">MIDTERM PRESENTATION</div>
+    <h1>StyleVector: Personalized Text Generation<br>via Contrastive Activation Steering</h1>
+    <div class="title-rule"></div>
+    <p class="slide-sub" style="text-align:center; max-width:50ch;">
+      A reproduction study of Zhang et al. (ACL 2025), with an extension toward
+      multi-component, norm-preserving steering.
+    </p>
+    <div class="title-meta">
+      <span>Slok Tulsyan · 12342080</span>
+      <span>Machine Learning Course Project</span>
+    </div>
+  </section>
+
+  <!-- ================= Slide 1: Motivation ================= -->
+  <section class="slide" data-title="The Problem">
+    <div class="eyebrow">01 · MOTIVATION</div>
+    <h2>LLMs write in one voice. People don't.</h2>
+    <p class="slide-sub">Personalized generation needs a user's writing style — existing approaches
+      pay a steep price for it.</p>
+    <div class="three-col">
+      <div class="card fragment">
+        <h3>RAG</h3>
+        <p style="font-size:0.98rem; margin:0;">Retrieves past examples at inference time.
+        Latency <strong>grows with history size</strong>; content and style stay entangled.</p>
+      </div>
+      <div class="card fragment">
+        <h3>PEFT</h3>
+        <p style="font-size:0.98rem; margin:0;">Trains a per-user adapter. Needs storage
+        <strong>and training time</strong> for every single user.</p>
+      </div>
+      <div class="card fragment">
+        <h3>StyleVector</h3>
+        <p style="font-size:0.98rem; margin:0;">Encodes style as <strong>one vector</strong> per
+        user. No retrieval, no training, no per-user parameters.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= Slide 2: Core idea ================= -->
+  <section class="slide" data-title="Core Idea">
+    <div class="eyebrow">02 · THE PAPER'S CORE IDEA</div>
+    <h2>Style is a direction in activation space</h2>
+    <p class="fragment">Contrast a user's <strong>authentic</strong> writing against a
+      <strong>style-agnostic</strong> version of the same content — the difference,
+      averaged over their history, is their style vector.</p>
+    <p class="fragment">Add that vector back into the model's hidden state during
+      generation, and the model writes <em>like them</em> — no retraining required.</p>
+  </section>
+
+  <!-- ================= Slide 3: Method / equations ================= -->
+  <section class="slide" data-title="Method">
+    <div class="eyebrow">03 · METHOD</div>
+    <h2>Three stages, four equations</h2>
+    <div class="pipeline fragment">
+      <div class="step"><div class="num">STAGE 1</div>Generate a style-agnostic
+        response for each historical input</div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="num">STAGE 2</div>Contrast activations: authentic
+        vs. style-agnostic, averaged</div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="num">STAGE 3</div>Add the resulting vector during
+        generation, at one layer</div>
+    </div>
+    <div style="margin-top:1.6rem;">
+      <div class="eq-block fragment"><div class="eq-label">Eq. 4 — style-agnostic response</div>ŷᵢ = M_g(xᵢ)</div>
+      <div class="eq-block fragment"><div class="eq-label">Eq. 5 — contrastive activations</div>a_p,ᵢ = h_ℓ(xᵢ ⊕ yᵢ)&nbsp;&nbsp;&nbsp;a_n,ᵢ = h_ℓ(xᵢ ⊕ ŷᵢ)</div>
+      <div class="eq-block fragment"><div class="eq-label">Eq. 7 — Mean Difference style vector</div>sᵘ_ℓ = (1/|Pᵤ|) Σᵢ (a_p,ᵢ − a_n,ᵢ)</div>
+      <div class="eq-block fragment"><div class="eq-label">Eq. 11 — steered generation</div>h'_ℓ(x)ₜ = h_ℓ(x)ₜ + α · sᵘ_ℓ</div>
+    </div>
+  </section>
+
+  <!-- ================= Slide 4: Our reproduction setup ================= -->
+  <section class="slide" data-title="Our Setup">
+    <div class="eyebrow">04 · OUR REPRODUCTION</div>
+    <h2>Matching the paper, disclosing where we couldn't</h2>
+    <div class="two-col">
+      <div>
+        <p style="font-family:var(--mono); font-size:0.82rem; color:var(--ink-soft); margin-bottom:0.5rem;">MATCHES THE PAPER</p>
+        <ul>
+          <li class="fragment">Model: <strong>LLaMA-2-7B-chat</strong></li>
+          <li class="fragment">Exact prompts (Appendix E)</li>
+          <li class="fragment">Greedy decoding</li>
+          <li class="fragment">Validation-tuned layer &amp; α, per task</li>
+        </ul>
+      </div>
+      <div>
+        <p style="font-family:var(--mono); font-size:0.82rem; color:var(--ink-soft); margin-bottom:0.5rem;">DISCLOSED DEVIATIONS</p>
+        <ul>
+          <li class="fragment">4-bit quantization, not 8-bit — 12GB VRAM on our GPU</li>
+          <li class="fragment">Public <strong>dev</strong> split, not the hidden test set</li>
+          <li class="fragment">History capped for compute feasibility</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= Slide 5: The bug we found ================= -->
+  <section class="slide" data-title="A Bug We Found">
+    <div class="eyebrow">05 · METHODOLOGICAL RIGOR</div>
+    <h2>A double-wrapped prompt was quietly hurting our baseline</h2>
+    <p class="slide-sub fragment">LaMP's own <code>input</code> field is already the fully-rendered
+      instruction. Re-applying our prompt template wrapped it a second time.</p>
+    <div class="diff-box fragment">
+      <div class="diff-line diff-remove">− prompt = prompt_fn(u["query_input"])   # double-wraps an already-rendered prompt</div>
+      <div class="diff-line diff-add">+ prompt = u["query_input"]               # use LaMP's rendered prompt as-is</div>
+    </div>
+    <p class="fragment" style="margin-top:1rem;">Caught by comparing a single live generation
+      against its own aggregate benchmark score — they didn't match. Fixed, and the
+      full evaluation was re-run before these results.</p>
+  </section>
+
+  <!-- ================= Slide 6: Results ================= -->
+  <section class="slide" data-title="Results">
+    <div class="eyebrow">06 · RESULTS</div>
+    <h2>Reproduction vs. the paper (ROUGE-L)</h2>
+    <div id="results-loading" class="loading-note">Loading benchmark results…</div>
+    <div id="results-chart" class="bars-wrap" style="display:none;"></div>
+    <div class="legend" id="results-legend" style="display:none;">
+      <span><span class="dot base"></span>Baseline</span>
+      <span><span class="dot steer"></span>StyleVector-steered</span>
+    </div>
+  </section>
+
+  <!-- ================= Slide 7: Results table ================= -->
+  <section class="slide" data-title="Results Table">
+    <div class="eyebrow">06 · RESULTS (CONT.)</div>
+    <h2>Full comparison: paper vs. our reproduction</h2>
+    <div id="results-table-wrap"><span class="loading-note">Loading…</span></div>
+  </section>
+
+  <!-- ================= Slide 8: Effect-size pattern ================= -->
+  <section class="slide" data-title="Key Finding">
+    <div class="eyebrow">07 · KEY FINDING</div>
+    <h2>Reproduction fidelity tracks the paper's own effect size</h2>
+    <p class="fragment">Tasks where the paper reports a <strong>large</strong> improvement
+      (Tweet Paraphrasing) reproduce closely, in both direction and magnitude.</p>
+    <p class="fragment">Tasks with the <strong>smallest</strong> reported effect
+      (News Headline Generation) are the most sensitive to implementation
+      differences — exactly what you'd expect statistically from a fragile,
+      small effect.</p>
+    <p class="fragment" style="color:var(--ink-soft); font-size:1.02rem;">This is not a
+      failure to reproduce — it's a quantified, testable pattern discovered by
+      comparing across tasks, not just within one.</p>
+  </section>
+
+  <!-- ================= Slide 9: Live demo ================= -->
+  <section class="slide demo-slide" data-title="Live Demo">
+    <div class="eyebrow">08 · LIVE DEMO</div>
+    <h2 style="margin-bottom:0.8rem;">Pick a person. Write a prompt. Watch it steer.</h2>
+    <div class="demo-frame-wrap">
+      <iframe class="demo-iframe" id="demo-iframe" title="StyleVector live demo"></iframe>
+      <div class="demo-controls">
+        <a href="/" target="_blank" class="btn-ghost">Open full-screen in a new tab ↗</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= Slide 10: Limitations ================= -->
+  <section class="slide" data-title="Limitations">
+    <div class="eyebrow">09 · HONEST LIMITATIONS</div>
+    <h2>What we're not claiming</h2>
+    <ul>
+      <li class="fragment">Absolute scores are <strong>not</strong> a byte-for-byte match to the
+        paper — different model scale, sample, and no released source code to compare against.</li>
+      <li class="fragment">Single-reference ROUGE-L/METEOR penalize equally valid
+        paraphrases on Tweet Paraphrasing — a known metric limitation, not a method failure.</li>
+      <li class="fragment">Evaluated on the public <strong>dev</strong> split; the paper's exact
+        test conditions are not independently verifiable without their code.</li>
+    </ul>
+  </section>
+
+  <!-- ================= Slide 11: Roadmap to end-term ================= -->
+  <section class="slide" data-title="Roadmap">
+    <div class="eyebrow">10 · TOWARD THE END-TERM</div>
+    <h2>Our proposed extension</h2>
+    <p class="slide-sub fragment">A single Mean Difference vector may conflate multiple,
+      independent stylistic dimensions — the paper's own stated limitation.</p>
+    <div class="two-col">
+      <div class="card fragment">
+        <h3>Multi-component style vectors</h3>
+        <p style="font-size:0.98rem; margin:0;">Top-<em>k</em> PCA over contrastive
+          differences, instead of a single mean direction.</p>
+      </div>
+      <div class="card fragment">
+        <h3>Norm-preserving steering</h3>
+        <p style="font-size:0.98rem; margin:0;">Rescale after steering to prevent the
+          activation-magnitude blowup the paper's own Fig. 3 shows at high α.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= Slide 12: Thank you ================= -->
+  <section class="slide title-slide" data-title="Thank You">
+    <h1 style="font-size:2.6rem;">Thank you</h1>
+    <p class="slide-sub" style="text-align:center;">Questions welcome — including a live
+      re-run of the demo on any prompt you'd like to try.</p>
+  </section>
+
+</div>
+
+<div class="slide-counter" id="slide-counter">1 / 13</div>
+<div class="nav-hint">→ next · ← back · Esc overview · ? shortcuts</div>
+<button class="nav-btn prev" id="btn-prev" aria-label="Previous slide">‹</button>
+<button class="nav-btn next" id="btn-next" aria-label="Next slide">›</button>
+
+<div class="overview" id="overview">
+  <div class="overview-grid" id="overview-grid"></div>
+</div>
+
+<div class="help-modal" id="help-modal">
+  <div class="help-card">
+    <h4>Keyboard shortcuts</h4>
+    <div><span class="key">→</span><span class="key">Space</span><span class="key">Page Down</span> next</div>
+    <div><span class="key">←</span><span class="key">Page Up</span> back</div>
+    <div><span class="key">Home</span> / <span class="key">End</span> first / last slide</div>
+    <div><span class="key">Esc</span> slide overview</div>
+    <div><span class="key">?</span> this help</div>
+  </div>
+</div>
+
+<script>
+(function () {
+  const slides = Array.from(document.querySelectorAll(".slide"));
+  const total = slides.length;
+  let current = 0;
+  let fragmentIndex = 0; // how many fragments revealed on the CURRENT slide
+
+  const progressFill = document.getElementById("progress-fill");
+  const counterEl = document.getElementById("slide-counter");
+  const overview = document.getElementById("overview");
+  const overviewGrid = document.getElementById("overview-grid");
+  const helpModal = document.getElementById("help-modal");
+  const demoIframe = document.getElementById("demo-iframe");
+
+  function fragmentsOf(slide) {
+    return Array.from(slide.querySelectorAll(".fragment"));
+  }
+
+  function renderSlide() {
+    slides.forEach((s, i) => {
+      s.classList.toggle("active", i === current);
+    });
+    const frags = fragmentsOf(slides[current]);
+    frags.forEach((f, i) => f.classList.toggle("visible", i < fragmentIndex));
+
+    progressFill.style.width = `${((current + 1) / total) * 100}%`;
+    counterEl.textContent = `${current + 1} / ${total}`;
+
+    // Lazy-load the demo iframe only when its slide is actually reached,
+    // so the Flask app isn't hit on page load if the presenter never gets there.
+    if (slides[current].classList.contains("demo-slide") && !demoIframe.src) {
+      demoIframe.src = "/";
+    }
+  }
+
+  function goTo(index) {
+    current = Math.max(0, Math.min(total - 1, index));
+    fragmentIndex = fragmentsOf(slides[current]).length; // show all fragments when jumping directly
+    renderSlide();
+  }
+
+  function next() {
+    const frags = fragmentsOf(slides[current]);
+    if (fragmentIndex < frags.length) {
+      fragmentIndex++;
+      renderSlide();
+      return;
+    }
+    if (current < total - 1) {
+      current++;
+      fragmentIndex = 0;
+      renderSlide();
+      if (current === total - 1 || current === 0) { /* no-op, placeholder for edge styling if needed */ }
+    }
+  }
+
+  function prev() {
+    if (fragmentIndex > 0) {
+      fragmentIndex--;
+      renderSlide();
+      return;
+    }
+    if (current > 0) {
+      current--;
+      fragmentIndex = fragmentsOf(slides[current]).length; // re-entering a slide backward shows all its fragments
+      renderSlide();
+    }
+  }
+
+  function buildOverview() {
+    overviewGrid.innerHTML = "";
+    slides.forEach((s, i) => {
+      const card = document.createElement("div");
+      card.className = "overview-card";
+      card.innerHTML = `<div class="idx">${String(i + 1).padStart(2, "0")}</div><div class="ttl">${s.dataset.title || "Untitled"}</div>`;
+      card.addEventListener("click", () => {
+        goTo(i);
+        closeOverview();
+      });
+      overviewGrid.appendChild(card);
+    });
+  }
+
+  function openOverview() {
+    buildOverview();
+    Array.from(overviewGrid.children).forEach((c, i) => c.classList.toggle("current", i === current));
+    overview.classList.add("open");
+  }
+  function closeOverview() { overview.classList.remove("open"); }
+
+  function openHelp() { helpModal.classList.add("open"); }
+  function closeHelp() { helpModal.classList.remove("open"); }
+
+  document.addEventListener("keydown", (e) => {
+    // Don't hijack keystrokes if focus is inside a top-level text field
+    // (defensive; this deck has none currently, but future slides might).
+    const tag = (document.activeElement && document.activeElement.tagName) || "";
+    if (tag === "INPUT" || tag === "TEXTAREA") return;
+
+    if (helpModal.classList.contains("open")) {
+      if (e.key === "Escape" || e.key === "?") closeHelp();
+      return;
+    }
+    if (overview.classList.contains("open")) {
+      if (e.key === "Escape") closeOverview();
+      return;
+    }
+
+    switch (e.key) {
+      case "ArrowRight": case "ArrowDown": case " ": case "PageDown":
+        e.preventDefault(); next(); break;
+      case "ArrowLeft": case "ArrowUp": case "PageUp":
+        e.preventDefault(); prev(); break;
+      case "Home": e.preventDefault(); goTo(0); break;
+      case "End": e.preventDefault(); goTo(total - 1); break;
+      case "Escape": e.preventDefault(); openOverview(); break;
+      case "?": e.preventDefault(); openHelp(); break;
+    }
+  });
+
+  document.getElementById("btn-next").addEventListener("click", next);
+  document.getElementById("btn-prev").addEventListener("click", prev);
+  overview.addEventListener("click", (e) => { if (e.target === overview) closeOverview(); });
+  helpModal.addEventListener("click", (e) => { if (e.target === helpModal) closeHelp(); });
+
+  // -----------------------------------------------------------------
+  // Results slide: fetch live data from the existing /api/summary
+  // endpoint (same source the demo page's benchmark panel uses), so
+  // this deck never goes stale relative to your actual results.
+  // -----------------------------------------------------------------
+  const PAPER_NUMBERS = {
+    LaMP_4: { rougeL_base: 0.0398, rougeL_sv: 0.0411 },
+    LaMP_5: { rougeL_base: 0.1086, rougeL_sv: 0.1366 },
+    LaMP_7: { rougeL_base: 0.2506, rougeL_sv: 0.2827 },
+  };
+  const TASK_LABELS = { LaMP_4: "News Headline", LaMP_5: "Scholarly Title", LaMP_7: "Tweet Paraphrasing" };
+
+  async function loadResults() {
+    try {
+      const res = await fetch("/api/summary");
+      const data = await res.json();
+      if (!data) {
+        document.getElementById("results-loading").textContent =
+          "No benchmark summary found. Run precompute_summary.py after your evaluation notebook completes.";
+        document.getElementById("results-table-wrap").innerHTML =
+          '<span class="loading-note">No benchmark summary found yet.</span>';
+        return;
+      }
+      renderChart(data);
+      renderTable(data);
+    } catch (e) {
+      document.getElementById("results-loading").textContent = "Could not load results: " + e.message;
+    }
+  }
+
+  function renderChart(rows) {
+    const rougeRows = rows.filter((r) => r.metric === "ROUGE-L");
+    const maxVal = Math.max(
+      ...rougeRows.map((r) => Math.max(r.ours_base, r.ours_stylevector)),
+      0.35
+    );
+    const wrap = document.getElementById("results-chart");
+    wrap.innerHTML = rougeRows.map((r) => {
+      const baseH = Math.round((r.ours_base / maxVal) * 170);
+      const steerH = Math.round((r.ours_stylevector / maxVal) * 170);
+      return `
+        <div class="bar-group">
+          <div class="bar-pair">
+            <div style="display:flex; flex-direction:column; align-items:center; justify-content:flex-end;">
+              <div class="bar-value">${r.ours_base}</div>
+              <div class="bar base" style="height:${baseH}px;"></div>
+            </div>
+            <div style="display:flex; flex-direction:column; align-items:center; justify-content:flex-end;">
+              <div class="bar-value">${r.ours_stylevector}</div>
+              <div class="bar steer" style="height:${steerH}px;"></div>
+            </div>
+          </div>
+          <div class="bar-label">${TASK_LABELS[r.task] || r.task}</div>
+        </div>`;
+    }).join("");
+    document.getElementById("results-loading").style.display = "none";
+    wrap.style.display = "flex";
+    document.getElementById("results-legend").style.display = "flex";
+    // trigger the height transition on next frame
+    requestAnimationFrame(() => requestAnimationFrame(() => {}));
+  }
+
+  function renderTable(rows) {
+    const body = rows.map((r) => {
+      const paper = PAPER_NUMBERS[r.task];
+      let paperCell = "—";
+      if (paper && r.metric === "ROUGE-L") {
+        const paperImprov = ((paper.rougeL_sv - paper.rougeL_base) / paper.rougeL_base * 100).toFixed(1);
+        paperCell = `${paperImprov}%`;
+      }
+      const cls = r.ours_improv_pct >= 0 ? "pos" : "neg";
+      const sign = r.ours_improv_pct >= 0 ? "+" : "";
+      return `<tr>
+        <td>${TASK_LABELS[r.task] || r.task}</td><td>${r.metric}</td>
+        <td>${r.ours_base}</td><td>${r.ours_stylevector}</td>
+        <td class="${cls}">${sign}${r.ours_improv_pct}%</td>
+        <td>${paperCell}</td>
+        <td>${r.n}</td>
+      </tr>`;
+    }).join("");
+    document.getElementById("results-table-wrap").innerHTML = `
+      <table class="results-table">
+        <thead><tr><th>Task</th><th>Metric</th><th>Base</th><th>Steered</th><th>Ours Improv.</th><th>Paper Improv.</th><th>n</th></tr></thead>
+        <tbody>${body}</tbody>
+      </table>`;
+  }
+
+  loadResults();
+  renderSlide();
+})();
+</script>
+
+</body>
+</html>

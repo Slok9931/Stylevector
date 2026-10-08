@@ -1,0 +1,9 @@
+flask
+transformers
+accelerate
+bitsandbytes
+torch
+rouge-score
+nltk
+huggingface_hub
+pandas

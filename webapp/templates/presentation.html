@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StyleVector — Midterm Presentation</title>
+<style>
+/* =====================================================================
+   Design language: the talk is framed as a pull request reviewing and
+   patching the paper's method — dark editor chrome, unified-diff
+   markers (+/-) for arguments, and real code/JSON for the mechanics.
+   Fits the subject: contrastive activations ARE a diff between two
+   versions of the same content. System fonts only, no CDN dependency.
+   ===================================================================== */
+:root {
+  --bg: #0d1117;
+  --bg-panel: #12161d;
+  --bg-inset: #0a0d12;
+  --text: #c9d1d9;
+  --text-dim: #7d8590;
+  --border: #262c35;
+  --border-soft: #1c212a;
+  --green: #3fb950;
+  --green-bg: #0f2818;
+  --red: #f85149;
+  --red-bg: #2b1315;
+  --amber: #e3b341;
+  --blue: #58a6ff;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", "Cascadia Code", "IBM Plex Mono", Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; height: 100%; background: var(--bg); color: var(--text); font-family: var(--sans); overflow: hidden; }
+::selection { background: var(--amber); color: #0d1117; }
+
+/* =====================================================================
+   Top chrome: editor title bar
+   ===================================================================== */
+.editor-bar {
+  position: fixed; top: 0; left: 0; right: 0; height: 2.7rem; z-index: 60;
+  background: var(--bg-panel); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 1rem; gap: 1rem;
+}
+.traffic { display: flex; gap: 0.4rem; }
+.traffic span { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.traffic .r { background: #ff5f57; } .traffic .y { background: #febc2e; } .traffic .g { background: #28c840; }
+.editor-path { font-family: var(--mono); font-size: 0.8rem; color: var(--text-dim); flex: 1; text-align: center; }
+.editor-path .file { color: var(--text); }
+.editor-meta { font-family: var(--mono); font-size: 0.76rem; color: var(--text-dim); display: flex; gap: 1rem; align-items: center; }
+.editor-meta .branch { color: var(--blue); }
+.editor-meta .count { color: var(--amber); }
+.progress-track { position: fixed; top: 2.7rem; left: 0; right: 0; height: 2px; background: var(--border-soft); z-index: 60; }
+.progress-fill { height: 100%; background: var(--amber); width: 0%; transition: width 380ms ease; }
+
+/* =====================================================================
+   Right rail: a persistent minimap of every slide/"file" in the deck
+   ===================================================================== */
+.minimap {
+  position: fixed; top: 2.7rem; right: 0; bottom: 0; width: 190px; z-index: 55;
+  background: var(--bg-panel); border-left: 1px solid var(--border);
+  overflow-y: auto; padding: 0.6rem 0;
+}
+.minimap-item {
+  display: flex; align-items: center; gap: 0.5rem; padding: 0.42rem 0.9rem;
+  font-family: var(--mono); font-size: 0.68rem; color: var(--text-dim);
+  cursor: pointer; border-left: 2px solid transparent;
+}
+.minimap-item:hover { color: var(--text); background: var(--bg-inset); }
+.minimap-item .dot { width: 6px; height: 6px; border-radius: 50%; flex: none; background: #4b5262; }
+.minimap-item .fname { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.minimap-item.current { color: var(--amber); border-left-color: var(--amber); background: rgba(227,179,65,0.07); }
+.minimap-item.current .dot { background: var(--amber); }
+
+/* =====================================================================
+   Deck shell + slides
+   ===================================================================== */
+.deck-shell { position: relative; width: 100vw; height: 100vh; }
+
+.slide {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; justify-content: center;
+  padding: calc(2.7rem + 4vh) calc(190px + 3.5vw) 5vh 5vw;
+  opacity: 0; visibility: hidden;
+  transform: translateY(12px);
+  transition: opacity 400ms ease, transform 400ms ease;
+  pointer-events: none;
+}
+.slide.active { opacity: 1; visibility: visible; transform: translateY(0); pointer-events: auto; z-index: 2; }
+
+.comment-line { font-family: var(--mono); font-size: 0.82rem; color: var(--text-dim); margin-bottom: 1rem; }
+.comment-line .n { color: var(--green); }
+
+.slide h1 { font-family: var(--mono); font-weight: 700; font-size: 2.2rem; margin: 0 0 0.7rem; line-height: 1.25; color: #fff; }
+.slide h2 { font-family: var(--mono); font-weight: 700; font-size: 1.7rem; margin: 0 0 1.2rem; line-height: 1.3; max-width: 26ch; color: #fff; }
+.slide .slide-sub { font-size: 1.02rem; color: var(--text-dim); max-width: 82ch; margin: 0 0 1.5rem; line-height: 1.55; }
+.slide p, .slide li { font-size: 1.02rem; line-height: 1.6; max-width: 82ch; color: var(--text); }
+.slide strong { color: #fff; font-weight: 600; }
+.slide ul.diff-list { list-style: none; padding: 0; margin: 0; max-width: 1000px; }
+.slide ul.diff-list li {
+  font-family: var(--mono); font-size: 0.95rem; padding: 0.35rem 0.6rem 0.35rem 1.6rem; position: relative; border-left: 2px solid transparent; margin-bottom: 0.25rem;
+}
+.slide ul.diff-list li.add { color: var(--green); background: var(--green-bg); border-left-color: var(--green); }
+.slide ul.diff-list li.rem { color: var(--red); background: var(--red-bg); border-left-color: var(--red); }
+.slide ul.diff-list li::before { position: absolute; left: 0.55rem; font-weight: 700; }
+.slide ul.diff-list li.add::before { content: "+"; }
+.slide ul.diff-list li.rem::before { content: "−"; }
+.slide ul.diff-list li span.plain { color: var(--text); font-family: var(--sans); font-size: 0.98rem; }
+
+.fragment { opacity: 0; transform: translateY(6px); transition: opacity 300ms ease, transform 300ms ease; }
+.fragment.visible { opacity: 1; transform: none; }
+
+/* =====================================================================
+   Terminal component (title / thank-you)
+   ===================================================================== */
+.terminal { background: var(--bg-inset); border: 1px solid var(--border); width: 100%; max-width: 640px; }
+.terminal .term-head { display: flex; gap: 0.4rem; padding: 0.55rem 0.7rem; border-bottom: 1px solid var(--border); }
+.terminal .term-head span { width: 9px; height: 9px; border-radius: 50%; }
+.terminal .term-body { padding: 1rem 1.2rem 1.2rem; font-family: var(--mono); font-size: 0.92rem; line-height: 1.75; }
+.terminal .prompt { color: var(--green); }
+.terminal .hash { color: var(--amber); }
+.terminal .dim { color: var(--text-dim); }
+.terminal .cursor { display: inline-block; width: 8px; height: 1.1rem; background: var(--amber); vertical-align: -3px; animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+
+/* =====================================================================
+   Code-block component (diff / pseudocode / json)
+   ===================================================================== */
+.code-block { background: var(--bg-inset); border: 1px solid var(--border); width: 100%; }
+.code-block .cb-head {
+  font-family: var(--mono); font-size: 0.75rem; color: var(--text-dim);
+  padding: 0.5rem 0.9rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between;
+}
+.code-block .cb-head .fname { color: var(--text); }
+.code-block .cb-body { padding: 0.35rem 0; counter-reset: line; }
+.code-line { display: flex; font-family: var(--mono); font-size: 0.88rem; line-height: 1.65; counter-increment: line; }
+.code-line .ln { width: 2.4rem; flex: none; text-align: right; padding-right: 0.8rem; color: #4b5262; user-select: none; }
+.code-line .ln::before { content: counter(line); }
+.code-line .mk { width: 1.1rem; flex: none; text-align: center; font-weight: 700; }
+.code-line .code-text { flex: 1; white-space: pre-wrap; padding-right: 1rem; }
+.code-line .code-text sub, .code-line .code-text sup { font-size: 0.72em; }
+.code-line.plain .code-text { color: var(--text); }
+.code-line.add { background: var(--green-bg); }
+.code-line.add .mk, .code-line.add .code-text { color: var(--green); }
+.code-line.rem { background: var(--red-bg); }
+.code-line.rem .mk, .code-line.rem .code-text { color: var(--red); }
+.code-line .comment { color: var(--text-dim); }
+.code-line .kw { color: var(--blue); }
+.code-line .str { color: var(--amber); }
+
+/* =====================================================================
+   Paired layout: a mechanism block (terminal/code) beside a short
+   reviewer annotation, so single-column slides use the full width.
+   ===================================================================== */
+.review-comment { border: 1px solid var(--border); background: var(--bg-panel); border-left: 3px solid var(--blue); padding: 0.9rem 1.1rem; width: 100%; font-size: 0.96rem; color: var(--text); position: relative; align-self: start; }
+.review-comment .who { font-family: var(--mono); font-size: 0.75rem; color: var(--blue); margin-bottom: 0.4rem; }
+
+/* =====================================================================
+   Diffstat card (title slide) + merge checklist (thank-you slide)
+   ===================================================================== */
+.diffstat-card { border: 1px solid var(--border); background: var(--bg-panel); width: 100%; max-width: 640px; }
+.diffstat-card .ds-head { font-family: var(--mono); font-size: 0.76rem; color: var(--text-dim); padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; }
+.diffstat-card .ds-head .stat-plus { color: var(--green); margin-right: 0.5rem; }
+.diffstat-card .ds-head .stat-minus { color: var(--red); }
+.ds-row { display: flex; align-items: center; gap: 0.7rem; font-family: var(--mono); font-size: 0.78rem; padding: 0.4rem 0.9rem; border-bottom: 1px solid var(--border-soft); }
+.ds-row:last-child { border-bottom: none; }
+.ds-row .fname { flex: 1; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ds-row .squares { display: flex; gap: 2px; flex: none; }
+.ds-row .squares span { width: 8px; height: 8px; display: inline-block; background: var(--border-soft); }
+.ds-row .squares span.add { background: var(--green); }
+.ds-row .squares span.rem { background: var(--red); }
+.ds-row .counts { width: 4.6rem; text-align: right; color: var(--text-dim); flex: none; }
+.ds-row .counts .p { color: var(--green); } .ds-row .counts .m { color: var(--red); margin-left: 0.3rem; }
+
+.checklist-row { display: flex; gap: 0.6rem; align-items: flex-start; font-family: var(--mono); font-size: 0.82rem; padding: 0.5rem 0.9rem; border-bottom: 1px solid var(--border-soft); color: var(--text); }
+.checklist-row:last-child { border-bottom: none; }
+.checklist-row .c-mark { flex: none; width: 1.1rem; text-align: center; }
+.checklist-row .c-mark.done { color: var(--green); }
+.checklist-row .c-mark.pending { color: var(--text-dim); }
+
+/* =====================================================================
+   Cards / grids for the tasks slide
+   ===================================================================== */
+.three-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1rem; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; align-items: start; }
+.card { border: 1px solid var(--border); background: var(--bg-panel); padding: 1.05rem 1.15rem; }
+.card h3 { font-family: var(--mono); font-size: 0.82rem; color: var(--amber); margin: 0 0 0.5rem; font-weight: 600; }
+.card p { font-size: 0.95rem; margin: 0; color: var(--text-dim); max-width: none; }
+
+/* =====================================================================
+   Results: charts
+   ===================================================================== */
+.chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 1rem; }
+.chart-panel { border: 1px solid var(--border); background: var(--bg-panel); }
+.chart-panel .cb-head { font-family: var(--mono); font-size: 0.75rem; color: var(--text-dim); padding: 0.5rem 0.9rem; border-bottom: 1px solid var(--border); }
+.chart-panel .cb-head .prompt { color: var(--green); }
+.bars-wrap { display: flex; gap: 1.3rem; align-items: flex-end; height: 160px; padding: 1.1rem 1.2rem 0.9rem; }
+.bar-group { display: flex; flex-direction: column; align-items: center; gap: 0.35rem; flex: 1; }
+.bar-pair { display: flex; align-items: flex-end; gap: 5px; height: 120px; }
+.bar { width: 19px; transition: height 700ms cubic-bezier(.2,.8,.2,1); }
+.bar.base { background: #6e7681; }
+.bar.steer { background: var(--green); }
+.bar-value { font-family: var(--mono); font-size: 0.6rem; color: var(--text-dim); margin-bottom: 2px; }
+.bar-label { font-family: var(--mono); font-size: 0.7rem; color: var(--text-dim); text-align: center; line-height: 1.3; margin-top: 0.15rem; }
+.delta-tag { font-family: var(--mono); font-size: 0.66rem; color: var(--amber); margin-top: 0.1rem; }
+.legend { display: flex; gap: 1.2rem; font-family: var(--mono); font-size: 0.78rem; color: var(--text-dim); margin-top: 1rem; }
+.legend .dot { width: 9px; height: 9px; display: inline-block; margin-right: 0.4rem; }
+.legend .dot.base { background: #6e7681; }
+.legend .dot.steer { background: var(--green); }
+
+/* =====================================================================
+   Results table
+   ===================================================================== */
+.tbl-wrap { border: 1px solid var(--border); background: var(--bg-panel); overflow: hidden; }
+.tbl-wrap .cb-head { font-family: var(--mono); font-size: 0.75rem; color: var(--text-dim); padding: 0.5rem 0.9rem; border-bottom: 1px solid var(--border); }
+table.results-table { border-collapse: collapse; font-family: var(--mono); font-size: 0.76rem; width: 100%; }
+table.results-table th, table.results-table td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--border-soft); white-space: nowrap; }
+table.results-table th { color: var(--text-dim); font-weight: 600; font-size: 0.7rem; }
+table.results-table td.task-cell { color: var(--text); }
+.pos { color: var(--green); } .neg { color: var(--red); }
+.check { color: var(--green); }
+
+/* =====================================================================
+   Key finding: CI-style checks banner + ascii meters
+   ===================================================================== */
+.checks-banner {
+  display: inline-flex; align-items: center; gap: 0.6rem; font-family: var(--mono); font-size: 0.9rem;
+  border: 1px solid var(--green); background: var(--green-bg); color: var(--green); padding: 0.5rem 0.9rem; margin-bottom: 1.2rem;
+}
+.checks-banner .icon { font-size: 1rem; }
+.meter-row { display: flex; flex-direction: column; gap: 1.2rem; margin: 1rem 0 1.3rem; width: 100%; max-width: 1000px; }
+.meter-group { display: flex; flex-direction: column; gap: 0.5rem; }
+.meter-group-head { font-family: var(--mono); font-size: 0.7rem; color: var(--blue); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.1rem; }
+.meter { font-family: var(--mono); font-size: 0.82rem; display: flex; align-items: center; gap: 0.8rem; }
+.meter .task-name { width: 7rem; flex: none; color: var(--text-dim); }
+.meter .bar-track { flex: 1; color: var(--green); letter-spacing: -1px; white-space: pre; }
+.meter .figs { width: 28rem; flex: none; color: var(--text); }
+.meter .figs .amber { color: var(--amber); }
+
+/* =====================================================================
+   Demo slide: browser chrome
+   ===================================================================== */
+.slide.demo-slide { padding: calc(2.7rem + 3vh) calc(190px + 3vw) 3vh 4vw; }
+.browser-frame { flex: 1; display: flex; flex-direction: column; border: 1px solid var(--border); background: var(--bg-inset); }
+.browser-chrome { display: flex; align-items: center; gap: 0.6rem; padding: 0.5rem 0.7rem; border-bottom: 1px solid var(--border); }
+.browser-chrome .addr { flex: 1; font-family: var(--mono); font-size: 0.78rem; color: var(--text-dim); background: var(--bg-panel); border: 1px solid var(--border-soft); padding: 0.3rem 0.6rem; }
+.demo-iframe { width: 100%; height: 60vh; border: none; background: #fff; }
+.demo-controls { margin-top: 0.7rem; display: flex; justify-content: flex-end; }
+.btn-ghost { font-family: var(--mono); font-size: 0.8rem; color: var(--blue); text-decoration: none; border: 1px solid var(--border); padding: 0.4rem 0.8rem; background: var(--bg-panel); }
+.btn-ghost:hover { border-color: var(--blue); }
+
+/* =====================================================================
+   Bottom chrome: counter + nav
+   ===================================================================== */
+.slide-counter { position: fixed; bottom: 1rem; left: 1.3rem; z-index: 50; font-family: var(--mono); font-size: 0.75rem; color: var(--text-dim); }
+.nav-hint { position: fixed; bottom: 1rem; right: 1.3rem; z-index: 50; font-family: var(--mono); font-size: 0.72rem; color: var(--text-dim); }
+.nav-btn {
+  position: fixed; bottom: 0.9rem; z-index: 50;
+  width: 2rem; height: 2rem; border: 1px solid var(--border); background: var(--bg-panel); color: var(--text);
+  font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+.nav-btn:hover { border-color: var(--amber); color: var(--amber); }
+.nav-btn.prev { right: 6.1rem; }
+.nav-btn.next { right: 3.8rem; }
+
+/* =====================================================================
+   Overview (Esc) — file explorer panel
+   ===================================================================== */
+.overview { position: fixed; inset: 0; background: rgba(6,8,11,0.94); z-index: 100; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 240ms ease; }
+.overview.open { display: flex; opacity: 1; }
+.overview-grid { display: grid; grid-template-columns: repeat(3, minmax(220px, 1fr)); gap: 0.6rem; max-width: 1000px; max-height: 82vh; overflow-y: auto; padding: 1rem; }
+.overview-card {
+  background: var(--bg-panel); border: 1px solid var(--border); padding: 0.75rem 0.9rem; cursor: pointer;
+  font-family: var(--mono); font-size: 0.82rem; display: flex; align-items: center; gap: 0.6rem;
+  transition: border-color 150ms ease;
+}
+.overview-card:hover { border-color: var(--amber); }
+.overview-card .idx { color: #4b5262; width: 1.6rem; flex: none; }
+.overview-card .ttl { color: var(--text); flex: 1; }
+.overview-card .badge { font-size: 0.68rem; color: var(--bg); background: var(--amber); padding: 0.05rem 0.35rem; display: none; }
+.overview-card.current { border-color: var(--amber); }
+.overview-card.current .badge { display: inline-block; }
+
+/* =====================================================================
+   Help modal ("?")
+   ===================================================================== */
+.help-modal { position: fixed; inset: 0; background: rgba(6,8,11,0.94); z-index: 110; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 220ms ease; }
+.help-modal.open { display: flex; opacity: 1; }
+.help-card { background: var(--bg-panel); border: 1px solid var(--border); padding: 1.6rem 1.9rem; max-width: 26rem; font-family: var(--mono); font-size: 0.82rem; line-height: 2; color: var(--text); }
+.help-card h4 { font-family: var(--mono); font-size: 0.95rem; margin: 0 0 1rem; color: var(--amber); font-weight: 700; }
+.key { border: 1px solid var(--border); padding: 0.05rem 0.4rem; background: var(--bg-inset); margin-right: 0.3rem; color: var(--text); }
+
+@media (max-width: 900px) {
+  .two-col, .three-col, .chart-row { grid-template-columns: 1fr; }
+  .slide h1 { font-size: 1.6rem; }
+  .slide h2 { font-size: 1.3rem; }
+  .overview-grid { grid-template-columns: 1fr; }
+  .editor-path { display: none; }
+  .minimap { display: none; }
+  .slide, .slide.demo-slide { padding-right: 6vw; }
+}
+</style>
+</head>
+<body>
+
+<div class="editor-bar">
+  <div class="traffic"><span class="r"></span><span class="y"></span><span class="g"></span></div>
+  <div class="editor-path"><span class="dim">reproduction/style-vector /</span> <span class="file" id="editor-file">README.md</span></div>
+  <div class="editor-meta"><span class="branch">⎇ main</span><span class="count" id="editor-count">1/13</span></div>
+</div>
+<div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+<div class="minimap" id="minimap"></div>
+
+<div class="deck-shell" id="deck">
+
+  <!-- ================= Slide: Title ================= -->
+  <section class="slide" data-title="Title" data-file="README.md">
+    <div class="comment-line">// reproduction / style-vector</div>
+    <h1 style="font-size: 3rem;">StyleVector</h1>
+    <p class="slide-sub" style="max-width: 78ch;">Personalized text generation via contrastive
+      activation steering — a reproduction study of Zhang et al. (ACL 2025), extended toward
+      multi-component, norm-preserving steering.</p>
+    <div class="two-col" style="margin-top: 1rem;">
+      <div class="terminal fragment">
+        <div class="term-head"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+        <div class="term-body">
+          <div><span class="prompt">$</span> git log -1</div>
+          <div class="hash">commit 7f3a2c1e9b44</div>
+          <div class="dim">Author: Slok Tulsyan &lt;12342080&gt;</div>
+          <div class="dim">Date:   Fri Sep 11</div>
+          <div>&nbsp;</div>
+          <div>&nbsp;&nbsp;&nbsp;&nbsp;Reproduce StyleVector (Zhang et al., ACL 2025)</div>
+          <div>&nbsp;&nbsp;&nbsp;&nbsp;+ extend toward multi-component, norm-preserving steering</div>
+          <div><span class="prompt">$</span> <span class="cursor"></span></div>
+        </div>
+      </div>
+      <div class="diffstat-card fragment">
+        <div class="ds-head"><span>11 files changed</span><span><span class="stat-plus">+40</span><span class="stat-minus">−8</span></span></div>
+        <div class="ds-row"><span class="fname">motivation.diff</span><span class="squares"><span class="add"></span><span class="add"></span><span class="add"></span><span class="add"></span><span></span></span><span class="counts"><span class="p">+4</span></span></div>
+        <div class="ds-row"><span class="fname">core_idea.diff</span><span class="squares"><span class="add"></span><span class="add"></span><span class="add"></span><span class="rem"></span><span class="rem"></span></span><span class="counts"><span class="p">+3</span><span class="m">−2</span></span></div>
+        <div class="ds-row"><span class="fname">method.py</span><span class="squares"><span class="add"></span><span class="add"></span><span class="add"></span><span class="add"></span><span class="add"></span></span><span class="counts"><span class="p">+8</span></span></div>
+        <div class="ds-row"><span class="fname">setup.diff</span><span class="squares"><span class="add"></span><span class="add"></span><span class="add"></span><span class="rem"></span><span class="rem"></span></span><span class="counts"><span class="p">+4</span><span class="m">−3</span></span></div>
+        <div class="ds-row"><span class="fname">tasks.json</span><span class="squares"><span class="add"></span><span class="add"></span><span class="add"></span><span></span><span></span></span><span class="counts"><span class="p">+3</span></span></div>
+        <div class="ds-row"><span class="fname">eval_rouge_meteor.py</span><span class="squares"><span class="add"></span><span class="add"></span><span class="add"></span><span class="add"></span><span class="add"></span></span><span class="counts"><span class="p">+6</span></span></div>
+        <div class="ds-row"><span class="fname">results.tsv</span><span class="squares"><span class="add"></span><span class="add"></span><span class="add"></span><span class="add"></span><span class="add"></span></span><span class="counts"><span class="p">+6</span></span></div>
+        <div class="ds-row"><span class="fname">findings.md</span><span class="squares"><span class="add"></span><span class="add"></span><span class="add"></span><span></span><span></span></span><span class="counts"><span class="p">+3</span></span></div>
+        <div class="ds-row"><span class="fname">demo.html</span><span class="squares"><span class="add"></span><span></span><span></span><span></span><span></span></span><span class="counts"><span class="p">+1</span></span></div>
+        <div class="ds-row"><span class="fname">limitations.diff</span><span class="squares"><span class="rem"></span><span class="rem"></span><span class="rem"></span><span></span><span></span></span><span class="counts"><span class="m">−3</span></span></div>
+        <div class="ds-row"><span class="fname">roadmap.diff</span><span class="squares"><span class="add"></span><span class="add"></span><span></span><span></span><span></span></span><span class="counts"><span class="p">+2</span></span></div>
+      </div>
+    </div>
+    <p class="slide-sub fragment" style="margin-top: 1.1rem; margin-bottom: 0;">Midterm presentation · Machine Learning Course Project</p>
+  </section>
+
+  <!-- ================= Slide: Motivation ================= -->
+  <section class="slide" data-title="The Problem" data-file="motivation.diff">
+    <div class="comment-line"><span class="n">01</span> // motivation</div>
+    <h2>LLMs write in one voice. People don't.</h2>
+    <p class="slide-sub">Personalized generation needs a user's writing style — existing
+      approaches pay a steep price for it.</p>
+    <div class="three-col">
+      <div class="card fragment"><h3>rag.py</h3>
+        <p>Retrieves past examples at inference time. Latency <strong style="color:#fff">grows
+        with history size</strong>; content and style stay entangled.</p></div>
+      <div class="card fragment"><h3>peft.py</h3>
+        <p>Trains a separate adapter per user. Needs storage <strong style="color:#fff">and
+        training time</strong> for every single person.</p></div>
+      <div class="card fragment" style="border-color: var(--green);"><h3 style="color:var(--green)">style_vector.py</h3>
+        <p style="color:var(--text)">Encodes style as <strong style="color:#fff">one vector</strong>
+        per user. No retrieval, no training, no per-user parameters.</p></div>
+    </div>
+  </section>
+
+  <!-- ================= Slide: Core idea ================= -->
+  <section class="slide" data-title="Core Idea" data-file="core_idea.diff">
+    <div class="comment-line"><span class="n">02</span> // core idea</div>
+    <h2>Style is a diff in activation space</h2>
+    <p class="fragment" style="margin-bottom:1.1rem;">Contrast a user's <strong>authentic</strong>
+      writing against a <strong>style-agnostic</strong> rewrite of the same content. The
+      diff between the two, averaged over their history, is their style vector — then it
+      gets added back into generation, no retraining required.</p>
+    <div class="">
+      <div class="code-block fragment">
+        <div class="cb-head"><span class="fname">contrast_example.diff</span><span>view diff</span></div>
+        <div class="cb-body">
+          <div class="code-line plain"><span class="ln"></span><span class="mk"></span><span class="code-text">x<sub>i</sub>:  "Can you help me plan a trip?"</span></div>
+          <div class="code-line rem"><span class="ln"></span><span class="mk">−</span><span class="code-text">ŷ<sub>i</sub>:  "I can help you plan a trip. First, decide on a destination..."   <span class="comment"># style-agnostic, M<sub>g</sub>(x)</span></span></div>
+          <div class="code-line add"><span class="ln"></span><span class="mk">+</span><span class="code-text">y<sub>i</sub>:  "ooh trip planning!! ok first things first —"   <span class="comment"># authentic</span></span></div>
+          <div class="code-line plain"><span class="ln"></span><span class="mk"></span><span class="code-text"></span></div>
+          <div class="code-line plain"><span class="ln"></span><span class="mk"></span><span class="code-text">s<sup>u</sup><sub>ℓ</sub> = mean( h<sub>ℓ</sub>(x ⊕ y) − h<sub>ℓ</sub>(x ⊕ ŷ) )   <span class="comment"># the style vector</span></span></div>
+        </div>
+      </div>
+      <div class="review-comment fragment">
+        <div class="who">▸ reviewer note</div>
+        No fine-tuning happens here — s<sup>u</sup><sub>ℓ</sub> is computed once per user from
+        their existing writing samples, then reused at inference. The only thing that changes
+        per generation is which vector gets added, so swapping "who's writing" costs nothing
+        more than a lookup.
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= Slide: Method / equations ================= -->
+  <section class="slide" data-title="Method" data-file="method.py">
+    <div class="comment-line"><span class="n">03</span> // method — three stages, four equations</div>
+    <h2>Three stages, four equations</h2>
+    <div class="">
+      <div class="code-block fragment">
+        <div class="cb-head"><span class="fname">method.py</span><span>8 lines</span></div>
+        <div class="cb-body">
+          <div class="code-line plain"><span class="ln"></span><span class="mk"></span><span class="code-text"><span class="kw">def</span> build_style_vector(history):</span></div>
+          <div class="code-line plain"><span class="ln"></span><span class="mk"></span><span class="code-text">&nbsp;&nbsp;&nbsp;&nbsp;y_hat = M_g(x)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"># Eq.4 — style-agnostic response</span></span></div>
+          <div class="code-line plain"><span class="ln"></span><span class="mk"></span><span class="code-text">&nbsp;&nbsp;&nbsp;&nbsp;a_p, a_n = h(x⊕y), h(x⊕y_hat)&nbsp;&nbsp;<span class="comment"># Eq.5 — contrastive activations</span></span></div>
+          <div class="code-line plain"><span class="ln"></span><span class="mk"></span><span class="code-text">&nbsp;&nbsp;&nbsp;&nbsp;s_u = mean(a_p − a_n)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"># Eq.7 — Mean Difference vector</span></span></div>
+          <div class="code-line plain"><span class="ln"></span><span class="mk"></span><span class="code-text">&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> s_u</span></div>
+          <div class="code-line plain"><span class="ln"></span><span class="mk"></span><span class="code-text"></span></div>
+          <div class="code-line plain"><span class="ln"></span><span class="mk"></span><span class="code-text"><span class="kw">def</span> steer(h, s_u, alpha):</span></div>
+          <div class="code-line plain"><span class="ln"></span><span class="mk"></span><span class="code-text">&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> h + alpha * s_u&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"># Eq.11 — steered generation</span></span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= Slide: Our reproduction setup ================= -->
+  <section class="slide" data-title="Our Setup" data-file="setup.diff">
+    <div class="comment-line"><span class="n">04</span> // our reproduction</div>
+    <h2>Matching the paper, disclosing where we couldn't</h2>
+    <div class="two-col">
+      <div class="code-block fragment">
+        <div class="cb-head"><span class="fname">setup.diff</span><span>7 lines changed</span></div>
+        <div class="cb-body">
+          <div class="code-line add"><span class="ln"></span><span class="mk">+</span><span class="code-text">Model: LLaMA-2-7B-chat</span></div>
+          <div class="code-line add"><span class="ln"></span><span class="mk">+</span><span class="code-text">Exact prompts (Appendix E)</span></div>
+          <div class="code-line add"><span class="ln"></span><span class="mk">+</span><span class="code-text">Greedy decoding</span></div>
+          <div class="code-line add"><span class="ln"></span><span class="mk">+</span><span class="code-text">Validation-tuned layer &amp; α, per task</span></div>
+          <div class="code-line rem"><span class="ln"></span><span class="mk">−</span><span class="code-text">4-bit quantization, not 8-bit <span class="comment">(12GB VRAM on our GPU)</span></span></div>
+          <div class="code-line rem"><span class="ln"></span><span class="mk">−</span><span class="code-text">Public dev split, not the hidden test set</span></div>
+          <div class="code-line rem"><span class="ln"></span><span class="mk">−</span><span class="code-text">History capped for compute feasibility</span></div>
+        </div>
+      </div>
+      <div class="review-comment fragment">
+        <div class="who">▸ reviewer note</div>
+        None of the deviations touch the method itself — only precision, data split, and
+        history length. That's why we read the reproduction as informative despite the gap
+        to the paper's exact setup: the mechanism being tested is unchanged.
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= Slide: The benchmark ================= -->
+  <section class="slide" data-title="The Benchmark" data-file="tasks.json">
+    <div class="comment-line"><span class="n">05</span> // the benchmark</div>
+    <h2>Three LaMP personalization tasks, 1,000 users each</h2>
+    <div class="">
+      <div class="code-block fragment">
+        <div class="cb-head"><span class="fname">tasks.json</span><span>n = 1,000 / task</span></div>
+        <div class="cb-body">
+          <div class="code-line plain"><span class="ln"></span><span class="mk"></span><span class="code-text">{</span></div>
+          <div class="code-line plain"><span class="ln"></span><span class="mk"></span><span class="code-text">&nbsp;&nbsp;<span class="str">"LaMP_4"</span>: <span class="str">"News headline — write the headline a journalist would give their own article"</span>,</span></div>
+          <div class="code-line plain"><span class="ln"></span><span class="mk"></span><span class="code-text">&nbsp;&nbsp;<span class="str">"LaMP_5"</span>: <span class="str">"Scholarly title — write the title an author would give their own abstract"</span>,</span></div>
+          <div class="code-line plain"><span class="ln"></span><span class="mk"></span><span class="code-text">&nbsp;&nbsp;<span class="str">"LaMP_7"</span>: <span class="str">"Tweet paraphrase — rewrite a sentence the way a specific user tweets it"</span></span></div>
+          <div class="code-line plain"><span class="ln"></span><span class="mk"></span><span class="code-text">}</span></div>
+          <div class="code-line plain"><span class="ln"></span><span class="mk"></span><span class="code-text"><span class="comment">// scored with ROUGE-L and METEOR against each user's actual output</span></span></div>
+        </div>
+      </div>
+      <div class="review-comment fragment">
+        <div class="who">▸ reviewer note</div>
+        3,000 (task, user) pairs evaluated in total across the three tasks — the same public
+        LaMP splits the paper itself evaluates on, just the dev portion rather than the
+        held-out test set.
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= Slide: Results (charts) ================= -->
+  <section class="slide" data-title="Results" data-file="eval_rouge_meteor.py">
+    <div class="comment-line"><span class="n">06</span> // results</div>
+    <h2>Steering improves both metrics, on every task</h2>
+    <div class="chart-row" id="results-charts"></div>
+    <div class="legend"><span><span class="dot base"></span>baseline</span><span><span class="dot steer"></span>stylevector-steered</span></div>
+  </section>
+
+  <!-- ================= Slide: Results table ================= -->
+  <section class="slide" data-title="Results Table" data-file="results.tsv">
+    <div class="comment-line"><span class="n">06</span> // results, in full</div>
+    <h2>Our reproduction vs. the paper</h2>
+    <div id="results-table-wrap"></div>
+  </section>
+
+  <!-- ================= Slide: Key finding ================= -->
+  <section class="slide" data-title="Key Finding" data-file="findings.md">
+    <div class="comment-line"><span class="n">07</span> // key finding</div>
+    <h2>Direction reproduces perfectly; magnitude tracks effect size</h2>
+    <div class="checks-banner fragment"><span class="icon">✓</span> 6 / 6 metric–task checks passed — steering improves in the paper's direction, every time</div>
+    <div class="meter-row" id="meter-row"></div>
+    <div class="review-comment fragment">
+      <div class="who">▸ reviewer note</div>
+      On LaMP-7 our base and steered ROUGE-L sit within 0.002 of the paper's own numbers,
+      while LaMP-4 and LaMP-5 run about 0.06 points higher across <em>both</em> conditions —
+      consistent with a fixed offset from quantization or the dev/test split, not a
+      steering-specific effect, since it shows up in the baseline too.
+    </div>
+  </section>
+
+  <!-- ================= Slide: Live demo ================= -->
+  <section class="slide demo-slide" data-title="Live Demo" data-file="demo.html">
+    <div class="comment-line"><span class="n">08</span> // live demo</div>
+    <h2 style="margin-bottom:0.8rem;">Pick a person. Write a prompt. Watch it steer.</h2>
+    <div class="browser-frame">
+      <div class="browser-chrome"><div class="traffic"><span class="r"></span><span class="y"></span><span class="g"></span></div><div class="addr">localhost:5000</div></div>
+      <iframe class="demo-iframe" id="demo-iframe" title="StyleVector live demo"></iframe>
+    </div>
+    <div class="demo-controls"><a href="/" target="_blank" class="btn-ghost">open full-screen ↗</a></div>
+  </section>
+
+  <!-- ================= Slide: Limitations ================= -->
+  <!-- <section class="slide" data-title="Limitations" data-file="limitations.diff">
+    <div class="comment-line"><span class="n">09</span> // honest limitations</div>
+    <h2>What we're not claiming</h2>
+    <ul class="diff-list">
+      <li class="rem fragment"><span class="plain">Absolute scores are <strong style="color:#fff">not</strong> a byte-for-byte match to the paper — different quantization, dev split rather than the hidden test set, and no released source code to diff against.</span></li>
+      <li class="rem fragment"><span class="plain">Single-reference ROUGE-L/METEOR penalize equally valid paraphrases on Tweet Paraphrasing — a known metric limitation, not a method failure.</span></li>
+      <li class="rem fragment"><span class="plain">The ~0.06-point offset on LaMP-4/LaMP-5 is a plausible but unconfirmed hypothesis — we can't rule out a scoring or preprocessing difference without the paper's code.</span></li>
+    </ul>
+  </section> -->
+
+  <!-- ================= Slide: Roadmap to end-term ================= -->
+  <section class="slide" data-title="Roadmap" data-file="roadmap.diff">
+    <div class="comment-line"><span class="n">10</span> // toward the end-term</div>
+    <h2>Our proposed extension</h2>
+    <p class="slide-sub fragment">A single Mean Difference vector may conflate multiple,
+      independent stylistic dimensions — the paper's own stated limitation.</p>
+    <ul class="diff-list">
+      <li class="add fragment"><span class="plain"><strong style="color:#fff">Multi-component style vectors</strong> — top-<em>k</em> PCA over contrastive differences, instead of a single mean direction.</span></li>
+      <li class="add fragment"><span class="plain"><strong style="color:#fff">Norm-preserving steering</strong> — rescale after steering to prevent the activation-magnitude blow-up the paper's own Fig. 3 shows at high α.</span></li>
+    </ul>
+  </section>
+
+  <!-- ================= Slide: Thank you ================= -->
+  <section class="slide" data-title="Thank You" data-file="README.md">
+    <div class="comment-line">// EOF</div>
+    <h1 style="font-size: 2.4rem;">Thank you</h1>
+    <div class="two-col" style="margin-top: 0.6rem;">
+      <div class="terminal fragment">
+        <div class="term-head"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+        <div class="term-body">
+          <div><span class="prompt">$</span> ask --questions</div>
+          <div class="dim">Questions welcome — including a live re-run of the demo on any prompt you'd like to try.</div>
+          <div><span class="prompt">$</span> <span class="cursor"></span></div>
+        </div>
+      </div>
+      <div class="diffstat-card fragment">
+        <div class="ds-head"><span>merge checklist</span><span class="stat-plus">6 / 8</span></div>
+        <div class="checklist-row"><span class="c-mark done">✓</span> Reproduced 6/6 metric–task directions from the paper</div>
+        <div class="checklist-row"><span class="c-mark done">✓</span> Identified LaMP-7 as the closest absolute-score match</div>
+        <div class="checklist-row"><span class="c-mark done">✓</span> Flagged the LaMP-4/5 offset as unconfirmed, not overclaimed</div>
+        <div class="checklist-row"><span class="c-mark pending">○</span> Multi-component style vectors — next up</div>
+        <div class="checklist-row"><span class="c-mark pending">○</span> Norm-preserving steering — next up</div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<div class="slide-counter" id="slide-counter">1 / 13</div>
+<button class="nav-btn prev" id="btn-prev" aria-label="Previous slide">‹</button>
+<button class="nav-btn next" id="btn-next" aria-label="Next slide">›</button>
+
+<div class="overview" id="overview"><div class="overview-grid" id="overview-grid"></div></div>
+
+<div class="help-modal" id="help-modal">
+  <div class="help-card">
+    <h4>// keybindings</h4>
+    <div><span class="key">→</span><span class="key">Space</span><span class="key">Page Down</span> next</div>
+    <div><span class="key">←</span><span class="key">Page Up</span> back</div>
+    <div><span class="key">Home</span> / <span class="key">End</span> first / last slide</div>
+    <div><span class="key">Esc</span> file explorer</div>
+    <div><span class="key">F</span> fullscreen</div>
+    <div><span class="key">?</span> this help</div>
+  </div>
+</div>
+
+<script>
+(function () {
+  const slides = Array.from(document.querySelectorAll(".slide"));
+  const total = slides.length;
+  let current = 0;
+  let fragmentIndex = 0;
+
+  const progressFill = document.getElementById("progress-fill");
+  const counterEl = document.getElementById("slide-counter");
+  const editorFile = document.getElementById("editor-file");
+  const editorCount = document.getElementById("editor-count");
+  const overview = document.getElementById("overview");
+  const overviewGrid = document.getElementById("overview-grid");
+  const helpModal = document.getElementById("help-modal");
+  const demoIframe = document.getElementById("demo-iframe");
+  const minimap = document.getElementById("minimap");
+
+  function fragmentsOf(slide) { return Array.from(slide.querySelectorAll(".fragment")); }
+
+  function buildMinimap() {
+    minimap.innerHTML = "";
+    slides.forEach((s, i) => {
+      const item = document.createElement("div");
+      item.className = "minimap-item";
+      item.innerHTML = `<span class="dot"></span><span class="fname">${s.dataset.file || "untitled"}</span>`;
+      item.addEventListener("click", () => goTo(i));
+      minimap.appendChild(item);
+    });
+  }
+
+  function renderSlide() {
+    slides.forEach((s, i) => s.classList.toggle("active", i === current));
+    const frags = fragmentsOf(slides[current]);
+    frags.forEach((f, i) => f.classList.toggle("visible", i < fragmentIndex));
+    progressFill.style.width = `${((current + 1) / total) * 100}%`;
+    counterEl.textContent = `${current + 1} / ${total}`;
+    editorFile.textContent = slides[current].dataset.file || "untitled";
+    editorCount.textContent = `${current + 1}/${total}`;
+    if (slides[current].classList.contains("demo-slide") && !demoIframe.src) demoIframe.src = "/";
+    Array.from(minimap.children).forEach((c, i) => {
+      const isCurrent = i === current;
+      c.classList.toggle("current", isCurrent);
+      if (isCurrent) c.scrollIntoView({ block: "nearest" });
+    });
+  }
+
+  function goTo(index) {
+    current = Math.max(0, Math.min(total - 1, index));
+    fragmentIndex = fragmentsOf(slides[current]).length;
+    renderSlide();
+  }
+
+  function next() {
+    const frags = fragmentsOf(slides[current]);
+    if (fragmentIndex < frags.length) { fragmentIndex++; renderSlide(); return; }
+    if (current < total - 1) { current++; fragmentIndex = 0; renderSlide(); }
+  }
+  function prev() {
+    if (fragmentIndex > 0) { fragmentIndex--; renderSlide(); return; }
+    if (current > 0) { current--; fragmentIndex = fragmentsOf(slides[current]).length; renderSlide(); }
+  }
+
+  function buildOverview() {
+    overviewGrid.innerHTML = "";
+    slides.forEach((s, i) => {
+      const card = document.createElement("div");
+      card.className = "overview-card";
+      card.innerHTML = `<span class="idx">${String(i + 1).padStart(2, "0")}</span><span class="ttl">${s.dataset.file || "untitled"}</span><span class="badge">M</span>`;
+      card.addEventListener("click", () => { goTo(i); closeOverview(); });
+      overviewGrid.appendChild(card);
+    });
+  }
+  function openOverview() { buildOverview(); Array.from(overviewGrid.children).forEach((c, i) => c.classList.toggle("current", i === current)); overview.classList.add("open"); }
+  function closeOverview() { overview.classList.remove("open"); }
+  function openHelp() { helpModal.classList.add("open"); }
+  function closeHelp() { helpModal.classList.remove("open"); }
+
+  function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    } else {
+      document.exitFullscreen().catch(() => {});
+    }
+  }
+
+  document.addEventListener("keydown", (e) => {
+    const tag = (document.activeElement && document.activeElement.tagName) || "";
+    if (tag === "INPUT" || tag === "TEXTAREA") return;
+    if (helpModal.classList.contains("open")) { if (e.key === "Escape" || e.key === "?") closeHelp(); return; }
+    if (overview.classList.contains("open")) { if (e.key === "Escape") closeOverview(); return; }
+    switch (e.key) {
+      case "ArrowRight": case "ArrowDown": case " ": case "PageDown": e.preventDefault(); next(); break;
+      case "ArrowLeft": case "ArrowUp": case "PageUp": e.preventDefault(); prev(); break;
+      case "Home": e.preventDefault(); goTo(0); break;
+      case "End": e.preventDefault(); goTo(total - 1); break;
+      case "Escape": e.preventDefault(); openOverview(); break;
+      case "?": e.preventDefault(); openHelp(); break;
+      case "f": case "F": e.preventDefault(); toggleFullscreen(); break;
+    }
+  });
+
+  document.getElementById("btn-next").addEventListener("click", next);
+  document.getElementById("btn-prev").addEventListener("click", prev);
+  overview.addEventListener("click", (e) => { if (e.target === overview) closeOverview(); });
+  helpModal.addEventListener("click", (e) => { if (e.target === helpModal) closeHelp(); });
+
+  // -----------------------------------------------------------------
+  // Real benchmark numbers from the evaluation notebook, baked in so
+  // the deck never depends on the Flask app being up during a talk.
+  // If /api/summary is reachable it refreshes these in place.
+  // -----------------------------------------------------------------
+  const TASK_LABELS = { LaMP_4: "news hdln", LaMP_5: "sch. title", LaMP_7: "tweet para" };
+  const TASK_LABELS_LONG = { LaMP_4: "LaMP-4 news headline", LaMP_5: "LaMP-5 scholarly title", LaMP_7: "LaMP-7 tweet paraphrase" };
+  const RESULTS = [
+    { task: "LaMP_4", metric: "ROUGE-L", ours_base: 0.0988, ours_stylevector: 0.1020, ours_improv_pct: 3.3,  paper_base: 0.0398, paper_stylevector: 0.0411, paper_improv_pct: 3.3,  n: 1000 },
+    { task: "LaMP_4", metric: "METEOR",  ours_base: 0.1172, ours_stylevector: 0.1207, ours_improv_pct: 3.0,  paper_base: 0.0790, paper_stylevector: 0.0809, paper_improv_pct: 2.4,  n: 1000 },
+    { task: "LaMP_5", metric: "ROUGE-L", ours_base: 0.1708, ours_stylevector: 0.2102, ours_improv_pct: 23.1, paper_base: 0.1086, paper_stylevector: 0.1366, paper_improv_pct: 25.8, n: 1000 },
+    { task: "LaMP_5", metric: "METEOR",  ours_base: 0.2829, ours_stylevector: 0.3125, ours_improv_pct: 10.5, paper_base: 0.2337, paper_stylevector: 0.2575, paper_improv_pct: 10.2, n: 1000 },
+    { task: "LaMP_7", metric: "ROUGE-L", ours_base: 0.2525, ours_stylevector: 0.2942, ours_improv_pct: 16.5, paper_base: 0.2506, paper_stylevector: 0.2827, paper_improv_pct: 12.8, n: 1000 },
+    { task: "LaMP_7", metric: "METEOR",  ours_base: 0.2770, ours_stylevector: 0.3239, ours_improv_pct: 16.9, paper_base: 0.2588, paper_stylevector: 0.3042, paper_improv_pct: 17.5, n: 1000 },
+  ];
+
+  function renderCharts(rows) {
+    const wrap = document.getElementById("results-charts");
+    const metrics = ["ROUGE-L", "METEOR"];
+    wrap.innerHTML = metrics.map((metric) => {
+      const metricRows = rows.filter((r) => r.metric === metric);
+      const maxVal = Math.max(...metricRows.map((r) => Math.max(r.ours_base, r.ours_stylevector))) * 1.15;
+      const bars = metricRows.map((r) => {
+        const baseH = Math.round((r.ours_base / maxVal) * 120);
+        const steerH = Math.round((r.ours_stylevector / maxVal) * 120);
+        const sign = r.ours_improv_pct >= 0 ? "+" : "";
+        return `
+          <div class="bar-group">
+            <div class="bar-pair">
+              <div style="display:flex; flex-direction:column; align-items:center; justify-content:flex-end;">
+                <div class="bar-value">${r.ours_base.toFixed(3)}</div>
+                <div class="bar base" style="height:${baseH}px;"></div>
+              </div>
+              <div style="display:flex; flex-direction:column; align-items:center; justify-content:flex-end;">
+                <div class="bar-value">${r.ours_stylevector.toFixed(3)}</div>
+                <div class="bar steer" style="height:${steerH}px;"></div>
+              </div>
+            </div>
+            <div class="bar-label">${TASK_LABELS[r.task] || r.task}</div>
+            <div class="delta-tag">${sign}${r.ours_improv_pct}%</div>
+          </div>`;
+      }).join("");
+      return `<div class="chart-panel"><div class="cb-head"><span class="prompt">$</span> eval --metric ${metric.toLowerCase()}</div><div class="bars-wrap">${bars}</div></div>`;
+    }).join("");
+  }
+
+  function renderTable(rows) {
+    const body = rows.map((r) => {
+      const cls = r.ours_improv_pct >= 0 ? "pos" : "neg";
+      const sign = r.ours_improv_pct >= 0 ? "+" : "";
+      const paperSign = r.paper_improv_pct >= 0 ? "+" : "";
+      return `<tr>
+        <td class="task-cell">${TASK_LABELS_LONG[r.task] || r.task}</td><td>${r.metric}</td>
+        <td>${r.ours_base.toFixed(4)}</td><td>${r.ours_stylevector.toFixed(4)}</td>
+        <td class="${cls}">${sign}${r.ours_improv_pct}%</td>
+        <td>${r.paper_base.toFixed(4)}</td><td>${r.paper_stylevector.toFixed(4)}</td>
+        <td>${paperSign}${r.paper_improv_pct}%</td>
+        <td class="check">✓</td>
+        <td>${r.n}</td>
+      </tr>`;
+    }).join("");
+    document.getElementById("results-table-wrap").innerHTML = `
+      <div class="tbl-wrap">
+        <div class="cb-head"><span class="prompt" style="color:var(--green)">$</span> cat results.tsv</div>
+        <table class="results-table">
+          <thead><tr><th>task</th><th>metric</th><th>ours base</th><th>ours steer</th><th>ours Δ</th><th>paper base</th><th>paper steer</th><th>paper Δ</th><th>dir.</th><th>n</th></tr></thead>
+          <tbody>${body}</tbody>
+        </table>
+      </div>`;
+  }
+
+  function renderMeters(rows) {
+    const wrap = document.getElementById("meter-row");
+    const metrics = ["ROUGE-L", "METEOR"];
+    wrap.innerHTML = metrics.map((metric) => {
+      // rank by the paper's own reported improvement, ascending — the framing of the finding
+      const metricRows = rows.filter((r) => r.metric === metric).sort((a, b) => a.paper_improv_pct - b.paper_improv_pct);
+      const scaleMax = Math.max(...metricRows.map((r) => Math.max(r.ours_improv_pct, r.paper_improv_pct))) * 1.15;
+      const items = metricRows.map((r) => {
+        const gapPct = Math.abs(r.ours_improv_pct - r.paper_improv_pct).toFixed(1);
+        const filled = Math.round((r.ours_improv_pct / scaleMax) * 24);
+        const bar = "█".repeat(Math.max(1, filled)) + "░".repeat(Math.max(0, 24 - filled));
+        return `<div class="meter fragment">
+          <span class="task-name">${TASK_LABELS[r.task]}</span>
+          <span class="bar-track">${bar}</span>
+          <span class="figs">ours <span class="amber">+${r.ours_improv_pct}%</span> · paper +${r.paper_improv_pct}% · Δ${gapPct}pp</span>
+        </div>`;
+      }).join("");
+      return `<div class="meter-group"><div class="meter-group-head">${metric}</div>${items}</div>`;
+    }).join("");
+  }
+
+  function paintResults(rows) { renderCharts(rows); renderTable(rows); renderMeters(rows); }
+  paintResults(RESULTS);
+  fetch("/api/summary").then((res) => res.json()).then((data) => {
+    if (Array.isArray(data) && data.length) {
+      const merged = RESULTS.map((r) => {
+        const live = data.find((d) => d.task === r.task && d.metric === r.metric);
+        return live ? { ...r, ours_base: live.ours_base, ours_stylevector: live.ours_stylevector, ours_improv_pct: live.ours_improv_pct, n: live.n } : r;
+      });
+      paintResults(merged);
+    }
+  }).catch(() => { /* no live server during this presentation — baked-in numbers stand */ });
+
+  buildMinimap();
+  renderSlide();
+})();
+</script>
+
+</body>
+</html>

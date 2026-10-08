@@ -1,0 +1,50 @@
+[
+  {
+    "task": "LaMP_4",
+    "metric": "ROUGE-L",
+    "ours_base": 0.0988,
+    "ours_stylevector": 0.102,
+    "ours_improv_pct": 3.3,
+    "n": 1000
+  },
+  {
+    "task": "LaMP_4",
+    "metric": "METEOR",
+    "ours_base": 0.1172,
+    "ours_stylevector": 0.1207,
+    "ours_improv_pct": 3.0,
+    "n": 1000
+  },
+  {
+    "task": "LaMP_5",
+    "metric": "ROUGE-L",
+    "ours_base": 0.1708,
+    "ours_stylevector": 0.2102,
+    "ours_improv_pct": 23.1,
+    "n": 1000
+  },
+  {
+    "task": "LaMP_5",
+    "metric": "METEOR",
+    "ours_base": 0.2729,
+    "ours_stylevector": 0.3125,
+    "ours_improv_pct": 10.5,
+    "n": 1000
+  },
+  {
+    "task": "LaMP_7",
+    "metric": "ROUGE-L",
+    "ours_base": 0.2525,
+    "ours_stylevector": 0.3242,
+    "ours_improv_pct": 16.5,
+    "n": 1000
+  },
+  {
+    "task": "LaMP_7",
+    "metric": "METEOR",
+    "ours_base": 0.277,
+    "ours_stylevector": 0.3239,
+    "ours_improv_pct": 16.9,
+    "n": 1000
+  }
+]
