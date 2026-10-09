@@ -65,8 +65,8 @@ MAX_GEN_TOKENS_PER_TASK = {
 # Hardcoded from the earlier validated grid search -- same as the final
 # clean reproduction notebook.
 BEST_CONFIG = {
-    "LaMP_4": {"layer": 16, "alpha": 0.25},
-    "LaMP_5": {"layer": 16, "alpha": 0.5},
+    "LaMP_4": {"layer": 16, "alpha": 0.02},
+    "LaMP_5": {"layer": 16, "alpha": 0.02},
     "LaMP_7": {"layer": 16, "alpha": 0.5},
 }
 

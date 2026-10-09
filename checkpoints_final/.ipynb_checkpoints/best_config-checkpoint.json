@@ -1,0 +1,14 @@
+{
+  "LaMP_4": {
+    "layer": 16,
+    "alpha": 0.01
+  },
+  "LaMP_5": {
+    "layer": 16,
+    "alpha": 0.01
+  },
+  "LaMP_7": {
+    "layer": 16,
+    "alpha": 0.5
+  }
+}

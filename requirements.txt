@@ -1,0 +1,30 @@
+# StyleVector reproduction notebook (stylevector_phase_2.ipynb)
+# Tested with Python 3.12 on an NVIDIA GPU with CUDA.
+#
+# PyTorch: install a CUDA-enabled build that matches your driver, e.g.
+#   pip install torch --index-url https://download.pytorch.org/whl/cu121
+# before running `pip install -r requirements.txt`.
+
+# --- Model loading, 4-bit quantization, hooks ---
+torch>=2.1
+transformers>=4.56
+accelerate>=0.26
+bitsandbytes>=0.43
+huggingface_hub>=0.23
+sentencepiece>=0.1.99
+protobuf>=3.20
+
+# --- Evaluation metrics ---
+rouge-score>=0.1.2
+nltk>=3.8
+
+# --- Data handling, plotting, progress bars ---
+numpy>=1.26
+pandas>=2.0
+matplotlib>=3.8
+tqdm>=4.66
+
+# --- Jupyter ---
+jupyterlab>=4.0
+ipykernel>=6.25
+ipywidgets>=8.0
