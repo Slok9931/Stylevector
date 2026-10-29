@@ -1,0 +1,4 @@
+Task,n,Mean Diff (paper's method) (ROUGE-L %),Mean Diff (paper's method) (METEOR %),Mean Diff + norm-preserving (ROUGE-L %),Mean Diff + norm-preserving (METEOR %),Multi-PCA (no norm-preserving) (ROUGE-L %),Multi-PCA (no norm-preserving) (METEOR %),Ours: Multi-PCA + norm-preserv. (ROUGE-L %),Ours: Multi-PCA + norm-preserv. (METEOR %)
+LaMP_4,300,-0.3,-4.0,-0.0,-3.4,-2.5,-5.0,-1.6,-4.6
+LaMP_5,300,3.1,-1.5,4.0,-0.6,5.8,3.3,6.3,3.8
+LaMP_7,300,-0.2,-3.6,-0.8,-4.2,-0.1,-4.8,-1.4,-6.7

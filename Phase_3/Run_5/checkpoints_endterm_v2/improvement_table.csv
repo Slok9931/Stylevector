@@ -1,0 +1,19 @@
+Task,Condition,ROUGE-L % vs base,METEOR % vs base
+LaMP_4,Mean Diff (paper),3.3486,2.5
+LaMP_4,Mean Diff + NP,14.6727,-39.7
+LaMP_4,PCA-k (v1 design),7.8399,13.5
+LaMP_4,Multi (shared basis),-6.2099,-4.3
+LaMP_4,OURS: Multi + NP,15.1357,-35.4
+LaMP_4,[paper's StyleVector],3.2,2.5
+LaMP_5,Mean Diff (paper),24.244,10.9
+LaMP_5,Mean Diff + NP,22.5934,11.4
+LaMP_5,PCA-k (v1 design),25.7132,10.3
+LaMP_5,Multi (shared basis),19.3892,8.0
+LaMP_5,OURS: Multi + NP,20.0719,8.8
+LaMP_5,[paper's StyleVector],25.8,10.2
+LaMP_7,Mean Diff (paper),12.9903,16.7
+LaMP_7,Mean Diff + NP,-4.2402,1.8
+LaMP_7,PCA-k (v1 design),12.8263,16.7
+LaMP_7,Multi (shared basis),12.5204,15.9
+LaMP_7,OURS: Multi + NP,-6.0924,3.1
+LaMP_7,[paper's StyleVector],12.8,17.5

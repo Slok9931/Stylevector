@@ -1,0 +1,16 @@
+Task,Condition,ROUGE-L,METEOR,n
+LaMP_4,Non-personalized,0.0909,0.1203,300
+LaMP_4,Mean Diff (paper's method),0.0907,0.1155,300
+LaMP_4,Mean Diff + norm-preserving,0.0909,0.1162,300
+LaMP_4,Multi-PCA (no norm-preserving),0.0886,0.1143,300
+LaMP_4,Ours: Multi-PCA + norm-preserv.,0.0895,0.1149,300
+LaMP_5,Non-personalized,0.2137,0.3179,300
+LaMP_5,Mean Diff (paper's method),0.2203,0.3131,300
+LaMP_5,Mean Diff + norm-preserving,0.2222,0.316,300
+LaMP_5,Multi-PCA (no norm-preserving),0.2261,0.3284,300
+LaMP_5,Ours: Multi-PCA + norm-preserv.,0.2271,0.33,300
+LaMP_7,Non-personalized,0.3584,0.344,300
+LaMP_7,Mean Diff (paper's method),0.3577,0.3317,300
+LaMP_7,Mean Diff + norm-preserving,0.3554,0.3296,300
+LaMP_7,Multi-PCA (no norm-preserving),0.3579,0.3273,300
+LaMP_7,Ours: Multi-PCA + norm-preserv.,0.3535,0.321,300

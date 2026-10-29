@@ -1,0 +1,55 @@
+Task,Metric,A,B,mean diff (A-B),95% CI lo,95% CI hi,A wins %,ties %,n,verdict,question
+LaMP_4,ROUGE-L,single_add,base,0.005140025221114182,-0.003316809474105544,0.015962333475359712,10.0,76.66666666666667,150,inconclusive,Does the reproduced StyleVector help at all?
+LaMP_4,METEOR,single_add,base,0.007272255306638396,-0.0027605262602174497,0.02124165288968821,12.0,74.0,150,inconclusive,Does the reproduced StyleVector help at all?
+LaMP_5,ROUGE-L,single_add,base,-0.001133020621638459,-0.011685220740261742,0.010055605295741522,10.738255033557047,80.53691275167785,149,inconclusive,Does the reproduced StyleVector help at all?
+LaMP_5,METEOR,single_add,base,-0.002280290496243605,-0.014853027374821753,0.009720202424472588,10.06711409395973,79.19463087248322,149,inconclusive,Does the reproduced StyleVector help at all?
+LaMP_7,ROUGE-L,single_add,base,0.004149138509591659,-0.005710726022630735,0.013587849498477926,19.333333333333332,68.0,150,inconclusive,Does the reproduced StyleVector help at all?
+LaMP_7,METEOR,single_add,base,0.01067882771718586,0.000705829724249191,0.020861846117747166,22.666666666666664,65.33333333333333,150,A better,Does the reproduced StyleVector help at all?
+LaMP_4,ROUGE-L,global_add,single_add,-0.005883033011236651,-0.01597000102456479,0.001117691747739112,6.666666666666667,88.0,150,inconclusive,Is a NON-personalised global vector as good as the user vector? (A better => gain is not personal)
+LaMP_4,METEOR,global_add,single_add,-0.008882785847562418,-0.02262689732842004,0.0006172689639857824,6.0,86.66666666666667,150,inconclusive,Is a NON-personalised global vector as good as the user vector? (A better => gain is not personal)
+LaMP_5,ROUGE-L,global_add,single_add,-0.0012327194691292955,-0.009508829971043964,0.007472465082716282,4.026845637583892,91.94630872483222,149,inconclusive,Is a NON-personalised global vector as good as the user vector? (A better => gain is not personal)
+LaMP_5,METEOR,global_add,single_add,-0.0018635826738198624,-0.010687796150879163,0.006330482305225908,4.697986577181208,91.94630872483222,149,inconclusive,Is a NON-personalised global vector as good as the user vector? (A better => gain is not personal)
+LaMP_7,ROUGE-L,global_add,single_add,0.0031132059324722743,-0.006689250950760715,0.013508132280741858,7.333333333333333,87.33333333333333,150,inconclusive,Is a NON-personalised global vector as good as the user vector? (A better => gain is not personal)
+LaMP_7,METEOR,global_add,single_add,0.004950618307699208,-0.0033741847617093745,0.014083551694075115,8.666666666666668,86.66666666666667,150,inconclusive,Is a NON-personalised global vector as good as the user vector? (A better => gain is not personal)
+LaMP_4,ROUGE-L,single_add,global_add,0.005883033011236651,-0.001117691747739114,0.01597000102456479,5.333333333333334,88.0,150,inconclusive,Does the user vector beat the global vector? (A better => genuine personalisation)
+LaMP_4,METEOR,single_add,global_add,0.008882785847562418,-0.0006172689639857911,0.02262689732842004,7.333333333333333,86.66666666666667,150,inconclusive,Does the user vector beat the global vector? (A better => genuine personalisation)
+LaMP_5,ROUGE-L,single_add,global_add,0.0012327194691292955,-0.007472465082716286,0.009508829971043964,4.026845637583892,91.94630872483222,149,inconclusive,Does the user vector beat the global vector? (A better => genuine personalisation)
+LaMP_5,METEOR,single_add,global_add,0.0018635826738198624,-0.006330482305225908,0.010687796150879161,3.3557046979865772,91.94630872483222,149,inconclusive,Does the user vector beat the global vector? (A better => genuine personalisation)
+LaMP_7,ROUGE-L,single_add,global_add,-0.0031132059324722743,-0.01350813228074186,0.006689250950760714,5.333333333333334,87.33333333333333,150,inconclusive,Does the user vector beat the global vector? (A better => genuine personalisation)
+LaMP_7,METEOR,single_add,global_add,-0.004950618307699208,-0.014083551694075134,0.0033741847617093732,4.666666666666667,86.66666666666667,150,inconclusive,Does the user vector beat the global vector? (A better => genuine personalisation)
+LaMP_4,ROUGE-L,shrink_add,single_add,-0.0033570964673939495,-0.013590457620324133,0.003227670260496345,6.0,90.0,150,inconclusive,Does shrinking the user vector toward the global mean help?
+LaMP_4,METEOR,shrink_add,single_add,-0.005639945637819278,-0.01891653800932179,0.0027047597606262653,6.0,88.66666666666667,150,inconclusive,Does shrinking the user vector toward the global mean help?
+LaMP_5,ROUGE-L,shrink_add,single_add,-0.0010873270047818194,-0.00912092639223855,0.007469562503119533,2.013422818791946,95.30201342281879,149,inconclusive,Does shrinking the user vector toward the global mean help?
+LaMP_5,METEOR,shrink_add,single_add,-0.0024888795660051957,-0.01105456914956404,0.005012949199464838,2.013422818791946,95.30201342281879,149,inconclusive,Does shrinking the user vector toward the global mean help?
+LaMP_7,ROUGE-L,shrink_add,single_add,0.0016804101127630528,-0.006552981577246282,0.009959793806411448,3.3333333333333335,95.33333333333334,150,inconclusive,Does shrinking the user vector toward the global mean help?
+LaMP_7,METEOR,shrink_add,single_add,0.0026457990570302337,-0.004349941409940171,0.010189619697551545,3.3333333333333335,95.33333333333334,150,inconclusive,Does shrinking the user vector toward the global mean help?
+LaMP_4,ROUGE-L,shrink_add,global_add,0.0025259365438427004,-0.00042715426015619786,0.007641877134627786,2.666666666666667,95.33333333333334,150,inconclusive,Does the shrunk vector keep anything personal beyond the global one?
+LaMP_4,METEOR,shrink_add,global_add,0.0032428402097431403,7.565625391094444e-05,0.00905595677696717,3.3333333333333335,95.33333333333334,150,A better,Does the shrunk vector keep anything personal beyond the global one?
+LaMP_5,ROUGE-L,shrink_add,global_add,0.00014539246434747626,-0.0024728394156293687,0.003056272586473929,1.342281879194631,96.64429530201343,149,inconclusive,Does the shrunk vector keep anything personal beyond the global one?
+LaMP_5,METEOR,shrink_add,global_add,-0.0006252968921853339,-0.0035640763268338545,0.0018130989572044869,0.6711409395973155,96.64429530201343,149,inconclusive,Does the shrunk vector keep anything personal beyond the global one?
+LaMP_7,ROUGE-L,shrink_add,global_add,-0.0014327958197092206,-0.007635245462286844,0.003032513118286184,4.0,92.0,150,inconclusive,Does the shrunk vector keep anything personal beyond the global one?
+LaMP_7,METEOR,shrink_add,global_add,-0.002304819250668974,-0.007845988357202622,0.0017285747167634863,3.3333333333333335,91.33333333333333,150,inconclusive,Does the shrunk vector keep anything personal beyond the global one?
+LaMP_4,ROUGE-L,pca_add,single_add,-0.002050627384087767,-0.006635230965220077,0.0016261103053362399,4.666666666666667,90.66666666666666,150,inconclusive,Multi-component (PCA) alone vs. original
+LaMP_4,METEOR,pca_add,single_add,-0.002461455574870716,-0.00912315628746241,0.00269565677730628,5.333333333333334,89.33333333333333,150,inconclusive,Multi-component (PCA) alone vs. original
+LaMP_5,ROUGE-L,pca_add,single_add,-0.0010478888941082712,-0.005789002032625673,0.003872574317932424,3.3557046979865772,89.93288590604027,149,inconclusive,Multi-component (PCA) alone vs. original
+LaMP_5,METEOR,pca_add,single_add,0.0006250254072125982,-0.007700785523661143,0.010285941814436669,4.026845637583892,89.26174496644296,149,inconclusive,Multi-component (PCA) alone vs. original
+LaMP_7,ROUGE-L,pca_add,single_add,0.0025528040466255126,-0.002496832240276013,0.00840417410107125,6.0,89.33333333333333,150,inconclusive,Multi-component (PCA) alone vs. original
+LaMP_7,METEOR,pca_add,single_add,0.0007994697279776234,-0.004707328308640904,0.00637337316253447,7.333333333333333,88.0,150,inconclusive,Multi-component (PCA) alone vs. original
+LaMP_4,ROUGE-L,single_np,single_add,-0.0020161401463786055,-0.006684688305297623,0.002103475195176703,4.666666666666667,91.33333333333333,150,inconclusive,Norm preservation alone vs. original
+LaMP_4,METEOR,single_np,single_add,-0.0004954777355561231,-0.00341311404137063,0.002198569835339088,6.666666666666667,89.33333333333333,150,inconclusive,Norm preservation alone vs. original
+LaMP_5,ROUGE-L,single_np,single_add,-0.0029896278218425874,-0.008455091358659003,0.0,0.0,97.98657718120806,149,inconclusive,Norm preservation alone vs. original
+LaMP_5,METEOR,single_np,single_add,-0.002644882846679983,-0.008587981419498654,0.0006514666468620807,0.6711409395973155,97.98657718120806,149,inconclusive,Norm preservation alone vs. original
+LaMP_7,ROUGE-L,single_np,single_add,-0.0038126890626890638,-0.010991592554092558,0.0005682036716519471,2.666666666666667,95.33333333333334,150,inconclusive,Norm preservation alone vs. original
+LaMP_7,METEOR,single_np,single_add,-0.003086052300671484,-0.008803563781445034,0.0002991901713170649,1.3333333333333335,96.66666666666667,150,inconclusive,Norm preservation alone vs. original
+LaMP_4,ROUGE-L,pca_np,single_add,-0.002862327934254921,-0.009321489907392337,0.002608322073366955,10.0,82.0,150,inconclusive,OUR FULL METHOD (PCA + norm-preserving) vs. original
+LaMP_4,METEOR,pca_np,single_add,-0.0023107687376491487,-0.00946346860607063,0.0035764331093059956,11.333333333333332,80.66666666666666,150,inconclusive,OUR FULL METHOD (PCA + norm-preserving) vs. original
+LaMP_5,ROUGE-L,pca_np,single_add,-0.0016137528235726742,-0.0066270551251824735,0.0036151668822908467,4.026845637583892,88.59060402684564,149,inconclusive,OUR FULL METHOD (PCA + norm-preserving) vs. original
+LaMP_5,METEOR,pca_np,single_add,-0.0010777431010448844,-0.009998876681975797,0.009011147501384651,4.697986577181208,87.91946308724832,149,inconclusive,OUR FULL METHOD (PCA + norm-preserving) vs. original
+LaMP_7,ROUGE-L,pca_np,single_add,0.0019293934702737596,-0.002950292373498214,0.007441037544543069,6.0,90.0,150,inconclusive,OUR FULL METHOD (PCA + norm-preserving) vs. original
+LaMP_7,METEOR,pca_np,single_add,0.0012078490800608683,-0.004326775509001377,0.006854920894047997,7.333333333333333,88.0,150,inconclusive,OUR FULL METHOD (PCA + norm-preserving) vs. original
+LaMP_4,ROUGE-L,pca_np,pca_add,-0.0008117005501671533,-0.005515213292425789,0.0031143963172975716,5.333333333333334,91.33333333333333,150,inconclusive,Norm preservation on top of PCA
+LaMP_4,METEOR,pca_np,pca_add,0.00015068683722156676,-0.002823383988917098,0.002876228531930082,6.666666666666667,90.0,150,inconclusive,Norm preservation on top of PCA
+LaMP_5,ROUGE-L,pca_np,pca_add,-0.0005658639294644031,-0.0020134228187919457,0.00021055402026582426,0.6711409395973155,98.65771812080537,149,inconclusive,Norm preservation on top of PCA
+LaMP_5,METEOR,pca_np,pca_add,-0.0017027685082574822,-0.005155971784687029,3.177750660972135e-05,0.6711409395973155,98.65771812080537,149,inconclusive,Norm preservation on top of PCA
+LaMP_7,ROUGE-L,pca_np,pca_add,-0.0006234105763517526,-0.002852173913043478,0.0007843137254901966,1.3333333333333335,98.0,150,inconclusive,Norm preservation on top of PCA
+LaMP_7,METEOR,pca_np,pca_add,0.00040837935208324516,-1.9930539111216265e-05,0.0010426088457752174,2.0,96.66666666666667,150,inconclusive,Norm preservation on top of PCA

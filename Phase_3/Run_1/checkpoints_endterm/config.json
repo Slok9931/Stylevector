@@ -1,0 +1,18 @@
+{
+  "BEST_CONFIG": {
+    "LaMP_4": {
+      "layer": 16,
+      "alpha": 0.25
+    },
+    "LaMP_5": {
+      "layer": 16,
+      "alpha": 0.5
+    },
+    "LaMP_7": {
+      "layer": 16,
+      "alpha": 0.5
+    }
+  },
+  "K_COMPONENTS": 3,
+  "N_EVAL_USERS_CAP": 300
+}

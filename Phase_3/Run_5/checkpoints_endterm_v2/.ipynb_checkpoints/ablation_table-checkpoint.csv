@@ -1,0 +1,19 @@
+Task,Condition,ROUGE-L,METEOR,n
+LaMP_4,Non-personalized,0.0569,0.0574,300
+LaMP_4,Mean Diff (paper),0.0609,0.1436,300
+LaMP_4,Mean Diff + NP,0.0676,0.0844,300
+LaMP_4,PCA-k (v1 design),0.0636,0.159,300
+LaMP_4,Multi (shared basis),0.0553,0.1341,300
+LaMP_4,OURS: Multi + NP,0.0679,0.0905,300
+LaMP_5,Non-personalized,0.2578,0.3076,300
+LaMP_5,Mean Diff (paper),0.3141,0.3411,300
+LaMP_5,Mean Diff + NP,0.31,0.3425,300
+LaMP_5,PCA-k (v1 design),0.3178,0.3392,300
+LaMP_5,Multi (shared basis),0.3019,0.3321,300
+LaMP_5,OURS: Multi + NP,0.3036,0.3345,300
+LaMP_7,Non-personalized,0.3001,0.4055,300
+LaMP_7,Mean Diff (paper),0.3527,0.4147,300
+LaMP_7,Mean Diff + NP,0.2989,0.362,300
+LaMP_7,PCA-k (v1 design),0.3522,0.4148,300
+LaMP_7,Multi (shared basis),0.3512,0.4121,300
+LaMP_7,OURS: Multi + NP,0.2931,0.3665,300

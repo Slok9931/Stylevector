@@ -1,0 +1,32 @@
+{
+  "LaMP_4": {
+    "pca_add": {
+      "layer": 20,
+      "rho": 0.05
+    },
+    "pca_np": {
+      "layer": 20,
+      "rho": 0.05
+    }
+  },
+  "LaMP_5": {
+    "pca_add": {
+      "layer": 20,
+      "rho": 0.05
+    },
+    "pca_np": {
+      "layer": 20,
+      "rho": 0.05
+    }
+  },
+  "LaMP_7": {
+    "pca_add": {
+      "layer": 12,
+      "rho": 0.05
+    },
+    "pca_np": {
+      "layer": 12,
+      "rho": 0.05
+    }
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "MAX_HISTORY": {
+    "LaMP_4": 30,
+    "LaMP_5": 30,
+    "LaMP_7": 15
+  },
+  "N_VAL": 40,
+  "N_TEST": 150,
+  "LAYER_GRID": [
+    12,
+    16,
+    20,
+    24
+  ],
+  "RHO_GRID": [
+    0.05,
+    0.1,
+    0.2,
+    0.4,
+    0.8
+  ],
+  "POS_GRID": [
+    "last"
+  ],
+  "K_GRID": [
+    3,
+    5
+  ],
+  "KAPPA_GRID": [
+    10
+  ],
+  "GENERIC_MODEL_ID": null,
+  "CLEAN_GENERIC": true,
+  "CLEAN_PREDS": true,
+  "PROMPT_SUFFIX": ""
+}

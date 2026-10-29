@@ -1,0 +1,25 @@
+Question,Task,Metric,A,B,mean diff,95% CI lo,95% CI hi,verdict
+norm preservation on top of PCA,LaMP_4,ROUGE-L,pca_np,pca_add,-0.0008851290754408082,-0.004149563477706322,0.0023646248388568755,inconclusive
+norm preservation on top of PCA,LaMP_4,METEOR,pca_np,pca_add,-0.0007047472998956182,-0.003238026255386963,0.0017701723307415867,inconclusive
+norm preservation on top of PCA,LaMP_5,ROUGE-L,pca_np,pca_add,-0.0007904376325428953,-0.0018035263744645884,-8.4240702089672e-05,A worse
+norm preservation on top of PCA,LaMP_5,METEOR,pca_np,pca_add,-0.000590453251232456,-0.00401040431153563,0.0022699086379733687,inconclusive
+norm preservation on top of PCA,LaMP_7,ROUGE-L,pca_np,pca_add,0.0013326672218956818,0.0,0.0031705546961929283,inconclusive
+norm preservation on top of PCA,LaMP_7,METEOR,pca_np,pca_add,0.0010111975044478953,-0.00011826782555315607,0.0027136981177857135,inconclusive
+our direction vs. a RANDOM direction (same layer and strength),LaMP_4,ROUGE-L,pca_np,random_np,0.0031697213110955373,-0.0021402747441586186,0.008488605988808628,inconclusive
+our direction vs. a RANDOM direction (same layer and strength),LaMP_4,METEOR,pca_np,random_np,0.005566596943230487,3.2759475503917673e-07,0.010997107650476496,A better
+our direction vs. a RANDOM direction (same layer and strength),LaMP_5,ROUGE-L,pca_np,random_np,-0.001228096893463201,-0.007748361404145727,0.005096261063874333,inconclusive
+our direction vs. a RANDOM direction (same layer and strength),LaMP_5,METEOR,pca_np,random_np,-0.000367270885996105,-0.009467285178737975,0.008840409472601968,inconclusive
+our direction vs. a RANDOM direction (same layer and strength),LaMP_7,ROUGE-L,pca_np,random_np,0.004487604615670679,-0.0016324198911051387,0.010154061921120663,inconclusive
+our direction vs. a RANDOM direction (same layer and strength),LaMP_7,METEOR,pca_np,random_np,0.002989987010144043,-0.0032744430703891864,0.008869984487963731,inconclusive
+"PCA, additive, vs. no steering",LaMP_4,ROUGE-L,pca_add,base,0.003368423232537837,-0.0022709911436832237,0.009599712829615279,inconclusive
+"PCA, additive, vs. no steering",LaMP_4,METEOR,pca_add,base,0.006111916745552455,0.00010877176295172151,0.013522775235346942,A better
+"PCA, additive, vs. no steering",LaMP_5,ROUGE-L,pca_add,base,0.000882532325799334,-0.0036519218509135126,0.005403905003798631,inconclusive
+"PCA, additive, vs. no steering",LaMP_5,METEOR,pca_add,base,-0.00017913166807426718,-0.007817894371708257,0.007496292193392243,inconclusive
+"PCA, additive, vs. no steering",LaMP_7,ROUGE-L,pca_add,base,0.003685969566392526,-0.0019435188166376021,0.009188228814830186,inconclusive
+"PCA, additive, vs. no steering",LaMP_7,METEOR,pca_add,base,0.0049907501474870134,-0.0005598867342561239,0.010784446218424391,inconclusive
+OUR FULL METHOD vs. no steering,LaMP_4,ROUGE-L,pca_np,base,0.002483294157097029,-0.002135594745897921,0.008118281806071359,inconclusive
+OUR FULL METHOD vs. no steering,LaMP_4,METEOR,pca_np,base,0.005407169445656837,-0.00011897909658974498,0.012514289097611753,inconclusive
+OUR FULL METHOD vs. no steering,LaMP_5,ROUGE-L,pca_np,base,9.209469325643875e-05,-0.004522620263792124,0.004788012802160173,inconclusive
+OUR FULL METHOD vs. no steering,LaMP_5,METEOR,pca_np,base,-0.0007695849193067226,-0.009061640345879663,0.007515588485313094,inconclusive
+OUR FULL METHOD vs. no steering,LaMP_7,ROUGE-L,pca_np,base,0.005018636788288207,-0.000669388378944529,0.010601372075151055,inconclusive
+OUR FULL METHOD vs. no steering,LaMP_7,METEOR,pca_np,base,0.006001947651934909,0.00042001449853178467,0.011809649402974678,A better

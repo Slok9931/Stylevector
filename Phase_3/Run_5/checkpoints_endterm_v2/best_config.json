@@ -1,0 +1,83 @@
+{
+  "LaMP_4": {
+    "mean": {
+      "layer": 16,
+      "alpha": 1.5,
+      "tune_score": 0.13401662497612576
+    },
+    "mean_np": {
+      "layer": 16,
+      "alpha": 1.0,
+      "tune_score": 0.08539610195085579
+    },
+    "pca_orig": {
+      "layer": 16,
+      "alpha": 1.5,
+      "tune_score": 0.1371868894684257
+    },
+    "shared": {
+      "layer": 16,
+      "alpha": 1.5,
+      "tune_score": 0.13550592062763234
+    },
+    "shared_np": {
+      "layer": 16,
+      "alpha": 1.0,
+      "tune_score": 0.08309172458298238
+    }
+  },
+  "LaMP_5": {
+    "mean": {
+      "layer": 20,
+      "alpha": 1.0,
+      "tune_score": 0.4008906132607353
+    },
+    "mean_np": {
+      "layer": 20,
+      "alpha": 1.0,
+      "tune_score": 0.3870398218486533
+    },
+    "pca_orig": {
+      "layer": 16,
+      "alpha": 0.25,
+      "tune_score": 0.39761966672637017
+    },
+    "shared": {
+      "layer": 16,
+      "alpha": 1.0,
+      "tune_score": 0.3891649913961071
+    },
+    "shared_np": {
+      "layer": 20,
+      "alpha": 1.0,
+      "tune_score": 0.37108137728168633
+    }
+  },
+  "LaMP_7": {
+    "mean": {
+      "layer": 20,
+      "alpha": 0.25,
+      "tune_score": 0.42377527420520156
+    },
+    "mean_np": {
+      "layer": 16,
+      "alpha": 0.5,
+      "tune_score": 0.33549280946216725
+    },
+    "pca_orig": {
+      "layer": 20,
+      "alpha": 0.25,
+      "tune_score": 0.4275453571400195
+    },
+    "shared": {
+      "layer": 20,
+      "alpha": 0.25,
+      "tune_score": 0.40705471615481026
+    },
+    "shared_np": {
+      "layer": 16,
+      "alpha": 0.5,
+      "tune_score": 0.32730586911577997
+    }
+  }
+}
